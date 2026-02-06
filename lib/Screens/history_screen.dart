@@ -15,12 +15,16 @@ class HistoryScreen extends StatelessWidget {
           backgroundColor: const Color(0xFF1B4F72),
           foregroundColor: Colors.white,
           bottom: const TabBar(
+            // စာသားအရောင်ကို အဖြူရောင်သတ်မှတ်ခြင်း
+            labelColor: Colors.white,
+            unselectedLabelColor:
+                Colors.white70, // မရွေးချယ်ထားသော Tab ကို အဖြူရောင် မှိန်မှိန်လေးပြရန်
+            indicatorColor: Colors.white, // အောက်ခြေလိုင်းကို အဖြူရောင်ထားရန်
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             tabs: [
               Tab(text: "ဆီဖြည့်မှတ်တမ်း"),
               Tab(text: "လက်ဆောင်လဲလှယ်မှု"),
             ],
-            indicatorColor: Colors.white,
-            labelStyle: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
         body: const TabBarView(children: [FuelHistoryTab(), RedeemHistoryTab()]),

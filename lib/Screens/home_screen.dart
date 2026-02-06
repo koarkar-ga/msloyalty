@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Helpers/open_scanner.dart';
+import 'package:msloyalty/Helpers/promo_banner_slider.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
 import 'package:msloyalty/Screens/fule_price_screen.dart';
@@ -36,7 +37,7 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         title: Container(
           child: Column(
-            children: [Image.asset("assets/images/moonsun_logo.png", height: 30, width: 30)],
+            children: [Image.asset("assets/images/moonsun_logo.png", height: 50, width: 50)],
           ),
         ),
         automaticallyImplyLeading: false,
@@ -82,54 +83,157 @@ class HomeScreen extends StatelessWidget {
       body: Consumer<PointProvider>(
         builder: (context, provider, child) {
           return SingleChildScrollView(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.all(10),
             child: Column(
               children: [
                 // Loyalty Card (Mockup အတိုင်း)
                 Container(
-                  padding: EdgeInsets.all(20),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Color(0xFF1B4F72), Color(0xFF2E86C1)]),
-                    borderRadius: BorderRadius.circular(20),
+                    // ပိုမို Premium ဖြစ်သော Gradient အရောင်
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF1B4F72), Color(0xFF0D2B40)],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1B4F72).withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Stack(
+                    // Background မှာ အလှဆင်ဖို့ Stack သုံးထားပါတယ်
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Card Background Decoration (အဝိုင်းပုံစံ အလင်းရောင်)
+                      Positioned(
+                        right: -10,
+                        top: -10,
+                        child: CircleAvatar(
+                          radius: 80,
+                          backgroundColor: Colors.white.withOpacity(0.05),
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Gold Member ⭐", style: TextStyle(color: Colors.white)),
-                          // Loyalty Card Widget အတွင်းရှိ QR Icon နေရာတွင်
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const ShowMyQRScreen()),
-                              );
-                            },
-                            child: const Icon(
-                              Icons.qr_code_2_rounded,
-                              color: Colors.white,
-                              size: 40,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "MOONSUN ENERGY",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      letterSpacing: 2,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                                    ),
+                                    child: const Text(
+                                      "GOLD MEMBER ⭐",
+                                      style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // QR Icon with Glow Effect
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ShowMyQRScreen()),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.qr_code_scanner_rounded,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
+                          const Text(
+                            "TOTAL POINTS",
+                            style: TextStyle(color: Colors.white60, fontSize: 12, letterSpacing: 1),
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                "${provider.points}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 42,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "PTS",
+                                style: TextStyle(color: Colors.white60, fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          // Progress Bar with Label
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Platinum အဆင့်သို့ရောက်ရန် 400 pts လိုပါသည်",
+                                style: TextStyle(color: Colors.white54, fontSize: 10),
+                              ),
+                              Text(
+                                "60%",
+                                style: TextStyle(
+                                  color: Colors.greenAccent.withOpacity(0.8),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: 0.6,
+                              minHeight: 8,
+                              backgroundColor: Colors.white.withOpacity(0.1),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.greenAccent),
                             ),
                           ),
                         ],
-                      ),
-                      SizedBox(height: 10),
-                      Text("POINTS:", style: TextStyle(color: Colors.white70)),
-                      Text(
-                        "${provider.points}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      LinearProgressIndicator(
-                        value: 0.6,
-                        backgroundColor: Colors.white24,
-                        color: Colors.greenAccent,
                       ),
                     ],
                   ),
@@ -148,11 +252,9 @@ class HomeScreen extends StatelessWidget {
                 ),
 
                 SizedBox(height: 30),
+
                 // Promo Banner
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.network(Config.bannerImage),
-                ),
+                PromoBannerSlider(),
               ],
             ),
           );
@@ -165,19 +267,19 @@ class HomeScreen extends StatelessWidget {
         onPressed: () => OpenScanner().scanner(context),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(icon: Icon(Icons.home), onPressed: () {}),
-            IconButton(icon: Icon(Icons.map), onPressed: () {}),
-            SizedBox(width: 40),
-            IconButton(icon: Icon(Icons.account_balance_wallet), onPressed: () {}),
-            IconButton(icon: Icon(Icons.settings), onPressed: () {}),
-          ],
-        ),
-      ),
+      // bottomNavigationBar: BottomAppBar(
+      //   shape: CircularNotchedRectangle(),
+      //   child: Row(
+      //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+      //     children: [
+      //       IconButton(icon: Icon(Icons.home), onPressed: () {}),
+      //       IconButton(icon: Icon(Icons.map), onPressed: () {}),
+      //       SizedBox(width: 40),
+      //       IconButton(icon: Icon(Icons.account_balance_wallet), onPressed: () {}),
+      //       IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+      //     ],
+      //   ),
+      // ),
     );
   }
 

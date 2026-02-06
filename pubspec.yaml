@@ -40,6 +40,8 @@ dependencies:
   device_info_plus: ^12.3.0 # Device Information
   shared_preferences: ^2.0.6   # Shared Preferences
   flutter_launcher_icons: ^0.13.1
+  carousel_slider_plus: # Slider အတွက်
+  cached_network_image: ^3.3.1 # Network Image Cache
   intl: 
 
 flutter_launcher_icons:
