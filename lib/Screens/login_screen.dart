@@ -1,16 +1,11 @@
-import 'dart:io';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:msloyalty/Helpers/build_login_tap_type.dart';
 import 'package:msloyalty/Helpers/get_device_info.dart';
-import 'package:msloyalty/Screens/home_screen.dart';
 import 'package:msloyalty/Screens/signup_screen.dart';
 import 'package:msloyalty/Services/security_service.dart';
 import 'package:msloyalty/Services/smspoh_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart'; // Signup Page ကို ချိတ်ဆက်ရန်
 // အရင်ကရေးခဲ့တဲ့ SMSPohService ကို import လုပ်ပါ

@@ -58,7 +58,7 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
           'total_points': 500,
         });
 
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     } catch (e) {
       Uihelper.showSnackBar(context, e.toString());

@@ -86,11 +86,7 @@ class _SignupPageState extends State<SignupPage> {
         },
       );
 
-      if (response != null) {
-        _navigateToSetPassword();
-      } else {
-        _showSnackBar("OTP ကုဒ် မှားယွင်းနေပါသည်", isError: true);
-      }
+      _navigateToSetPassword();
     } catch (e) {
       _showSnackBar("Verification Error: $e", isError: true);
     } finally {

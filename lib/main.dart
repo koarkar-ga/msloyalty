@@ -17,7 +17,7 @@ void main() async {
 }
 
 class MSLoyaltyApp extends StatelessWidget {
-  const MSLoyaltyApp({Key? key}) : super(key: key);
+  const MSLoyaltyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

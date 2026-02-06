@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   Future<String?> _getUserAvatar() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return null;
@@ -28,7 +30,12 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Image.network(Config.logoImage, height: 40), // Logo နေရာ
+        title: Container(
+          child: Column(
+            children: [Image.asset("assets/images/moonsun_logo.png", height: 30, width: 30)],
+          ),
+        ),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: Icon(Icons.notifications_none, color: Colors.black),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:msloyalty/Services/security_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:provider/provider.dart';
 
 //import 'point_provider.dart'; // သင့် Provider ဖိုင်အမည်
 

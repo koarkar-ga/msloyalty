@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:msloyalty/Helpers/get_device_info.dart';
 import 'package:msloyalty/Services/security_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
