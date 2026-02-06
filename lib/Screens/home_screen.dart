@@ -3,7 +3,11 @@ import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Helpers/open_scanner.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
+import 'package:msloyalty/Screens/fule_price_screen.dart';
+import 'package:msloyalty/Screens/gift_card_voucher.dart';
+import 'package:msloyalty/Screens/history_screen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
+import 'package:msloyalty/Screens/station_list_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -136,10 +140,10 @@ class HomeScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildIconBtn(Icons.location_on, "ဆိုင်ရှာရန်"),
-                    _buildIconBtn(Icons.card_giftcard, "ဆုလက်ဆောင်"),
-                    _buildIconBtn(Icons.history, "မှတ်တမ်း"),
-                    _buildIconBtn(Icons.local_gas_station, "ဆီစျေး"),
+                    _buildIconBtn(context, Icons.location_on, "ဆိုင်ရှာရန်", StationListScreen()),
+                    _buildIconBtn(context, Icons.card_giftcard, "ဆုလက်ဆောင်", GiftCardScreen()),
+                    _buildIconBtn(context, Icons.history, "မှတ်တမ်း", HistoryScreen()),
+                    _buildIconBtn(context, Icons.local_gas_station, "ဆီစျေး", FuelPriceScreen()),
                   ],
                 ),
 
@@ -177,16 +181,36 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIconBtn(IconData icon, String label) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: Colors.grey.shade100,
-          child: Icon(icon, color: Color(0xFF1B4F72)),
-        ),
-        SizedBox(height: 5),
-        Text(label, style: TextStyle(fontSize: 12)),
-      ],
+  Widget _buildIconBtn(BuildContext context, IconData icon, String label, Widget page) {
+    return GestureDetector(
+      onTap: () {
+        switch (label) {
+          case "ဆိုင်ရှာရန်":
+            Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+            break;
+          case "ဆုလက်ဆောင်":
+            Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+            break;
+          case "မှတ်တမ်း":
+            Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+            break;
+          case "ဆီစျေး":
+            Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+            break;
+          default:
+            break;
+        }
+      },
+      child: Column(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.grey.shade100,
+            child: Icon(icon, color: Color(0xFF1B4F72)),
+          ),
+          SizedBox(height: 5),
+          Text(label, style: TextStyle(fontSize: 12)),
+        ],
+      ),
     );
   }
 }
