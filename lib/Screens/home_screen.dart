@@ -3,9 +3,24 @@ import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Helpers/open_scanner.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
+import 'package:msloyalty/Screens/profile_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeScreen extends StatelessWidget {
+  Future<String?> _getUserAvatar() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return null;
+
+    final data = await Supabase.instance.client
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    return data?['avatar_url'];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,7 +30,41 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         title: Image.network(Config.logoImage, height: 40), // Logo နေရာ
         actions: [
-          Icon(Icons.notifications_none, color: Colors.black),
+          IconButton(
+            icon: Icon(Icons.notifications_none, color: Colors.black),
+            onPressed: () {},
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+            child: FutureBuilder<String?>(
+              future: _getUserAvatar(),
+              builder: (context, snapshot) {
+                // Data ဆွဲနေတုန်းမှာ ပြမယ့် ပုံစံ
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircleAvatar(radius: 18, backgroundColor: Colors.grey);
+                }
+
+                final imageUrl = snapshot.data;
+
+                return CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFF1B4F72),
+                  // ပုံရှိရင် NetworkImage ပြမယ်၊ မရှိရင် Icon ပြမယ်
+                  backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+                      ? NetworkImage(imageUrl)
+                      : null,
+                  child: (imageUrl == null || imageUrl.isEmpty)
+                      ? const Icon(Icons.person, color: Colors.white, size: 20)
+                      : null,
+                );
+              },
+            ),
+          ),
           SizedBox(width: 15),
         ],
       ),

@@ -36,7 +36,17 @@ dependencies:
   mobile_scanner: ^5.1.0    # QR Scan ရန်
   url_launcher: ^6.2.4      # KPay ဖွင့်ရန်
   http: ^1.2.0
-  
+  image_picker: ^1.0.7
+  device_info_plus: ^12.3.0 # Device Information
+  shared_preferences: ^2.0.6   # Shared Preferences
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/moonsun_logo.png" # သင့်ပုံလမ်းကြောင်း
+  adaptive_icon_background: "#1B4F72" # Android အတွက် Background အရောင်
+  adaptive_icon_foreground: "assets/images/moonsun_logo.png"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

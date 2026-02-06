@@ -1,8 +1,9 @@
-import 'dart:async'; // Timer အတွက် လိုအပ်သည်
 import 'package:flutter/material.dart';
-import 'package:msloyalty/Screens/login_screen.dart';
-import 'dart:ui';
-import 'home_screen.dart'; // Home Screen ကို import လုပ်ပါ
+import 'package:msloyalty/Helpers/get_device_info.dart';
+import 'package:msloyalty/Services/security_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,76 +16,35 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _startInitialization();
+  }
 
-    // စက္ကန့် ၃ စက္ကန့်အကြာတွင် Home Screen သို့ ပြောင်းမည်
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        // Navigator.pushReplacement ကိုသုံးခြင်းဖြင့်
-        // နောက်ပြန်ဆုတ်လျှင် Splash Screen သို့ ပြန်မရောက်တော့ပါ
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-      }
-    });
+  Future<void> _startInitialization() async {
+    // Logo ကို အနည်းဆုံး ၂ စက္ကန့်လောက် ပြထားချင်လို့ပါ
+    await Future.delayed(const Duration(seconds: 2));
+    print("Splash Screen Finished");
+    checkUserSession(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.network(
-            'https://www.moonsungroup.com/wp-content/uploads/2024/12/88241740_1806356016162404_6870344400963108864_n.jpg',
-            fit: BoxFit.cover,
-            alignment: const Alignment(0, -0.8),
-          ),
-          // Blur layer
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              color: Colors.white.withOpacity(0.2), // soft overlay
+      backgroundColor: const Color(0xFF1B4F72), // Brand Color
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // သင်၏ Logo
+            Image.network(
+              'https://www.moonsungroup.com/wp-content/uploads/2024/11/moonsun_logo.png',
+              width: 150,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 200, bottom: 8.0),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.network(
-                    'https://www.moonsungroup.com/wp-content/uploads/2024/11/moonsun_logo.png',
-                    height: 120,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        "Fuel More..",
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 26,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        " Earn More..",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 26,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            const SizedBox(height: 30),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
