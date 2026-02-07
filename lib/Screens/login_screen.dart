@@ -188,11 +188,12 @@ class _LoginScreenState extends State<LoginScreen> {
         _showSnackBar("OTP ပို့ပြီးပါပြီ (ID: $_lastRequestId)");
       } else {
         _showSnackBar("OTP ပို့ရန် အဆင်မပြေပါ။");
+        setState(() => _isOtpSent = false);
       }
     } else {
       // အကောင့်မရှိသေးလျှင် Signup Page သို့ ဖုန်းနံပါတ်ပါးပြီး လွှတ်လိုက်မယ်
       _showSnackBar("အကောင့်မရှိသေးသည့်အတွက် အကောင့်အရင်ဖွင့်ပေးပါ");
-      _isOtpSent = false;
+      setState(() => _isOtpSent = false);
     }
   }
 
@@ -376,7 +377,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() => _isPasswordMode = true);
                       }),
                       const SizedBox(width: 10),
-                      buildLoginTypeTab("OTP Login", !_isPasswordMode, () {
+                      buildLoginTypeTab("OTP", !_isPasswordMode, () {
                         setState(() => _isPasswordMode = false);
                       }),
                     ],
@@ -391,6 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _phoneController,
                         enabled: !_isOtpSent, // ပို့ပြီးရင် ပြင်လို့မရအောင် ပိတ်ထားမယ်
+                        keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
                           labelText: " 09 - ဖုန်းနံပါတ် ရိုက်ထည့်ပါ",
                           prefixIcon: const Icon(Icons.phone_android),
