@@ -18,6 +18,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       appBar: AppBar(
         title: const Text("QR စကင်ဖတ်ပါ", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF1B4F72), // MOONSUN Royal Blue
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.flash_on),
