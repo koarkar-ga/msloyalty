@@ -1,155 +1,222 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:msloyalty/Services/security_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-//import 'point_provider.dart'; // သင့် Provider ဖိုင်အမည်
+class MyQrScreen extends StatefulWidget {
+  const MyQrScreen({super.key});
 
-class ShowMyQRScreen extends StatelessWidget {
-  const ShowMyQRScreen({super.key});
+  @override
+  State<MyQrScreen> createState() => _MyQrScreenState();
+}
+
+class _MyQrScreenState extends State<MyQrScreen> {
+  final supabase = Supabase.instance.client;
+  String _qrData = "";
+  int _secondsRemaining = 30;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateSecureQR();
+    _startTimer();
+  }
+
+  // QR Code ထုတ်လုပ်သည့် Logic
+  void _generateSecureQR() {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    // အချိန်အလိုက် ပြောင်းလဲနေမည့် Token ထုတ်ခြင်း
+    final int timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    // လုံခြုံရေးအတွက် Secret Key တစ်ခုသတ်မှတ်ပါ (Admin/Backend ဘက်မှာလည်း ဒါကိုပဲသုံးရမည်)
+    const String appSecret = "MS_ENERGY_SECRET_KEY_2025";
+
+    // User ID + Timestamp + Secret ကိုပေါင်းပြီး SHA256 Hash လုပ်ပါသည်
+    final bytes = utf8.encode("${user.id}_${timestamp}_$appSecret");
+    final String hash = sha256.convert(bytes).toString();
+
+    // QR ထဲမှာ သိမ်းမည့် Data (JSON format)
+    final Map<String, dynamic> secureData = {
+      "uid": user.id, // User ID
+      "t": timestamp, // Generated Time
+      "h": hash, // Verification Hash
+      "v": "1.0", // Version
+    };
+
+    if (mounted) {
+      setState(() {
+        _qrData = jsonEncode(secureData);
+        _secondsRemaining = 30; // စက္ကန့် ၃၀ ပြန်စမည်
+      });
+    }
+  }
+
+  // အချိန်မှတ်နာရီ (Countdown Timer)
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        if (mounted) {
+          setState(() {
+            _secondsRemaining--;
+          });
+        }
+      } else {
+        // သုညရောက်သွားလျှင် QR အသစ်ပြန်ထုတ်မည်
+        _generateSecureQR();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Provider မှတစ်ဆင့် User ID သို့မဟုတ် Member ID ကို ယူပါ
-
-    //final userId = "MOONSUN-MEMBER-001"; // ဥပမာ ID
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("ကျွန်ုပ်၏ QR ကုဒ်", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1B4F72), // MOONSUN Blue
-        centerTitle: true,
+        title: const Text("Point ရယူရန် QR", style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
-      body: FutureBuilder(
-        future: getUserProfile(),
-        builder: (context, asyncSnapshot) {
-          if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              // လုံခြုံရေး သတိပေးချက်
+              _buildSecurityBanner(),
+              const SizedBox(height: 40),
 
-          final userData = asyncSnapshot.data;
-          final String userId = userData?['id'] ?? "Unknown";
-
-          return Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // အပေါ်ပိုင်း စာသား
-                const Text(
-                  "ဆီဆိုင်ဝန်ထမ်းကို ဤ QR ပြသပါ",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // QR Code ပြသသည့် ဧရိယာ
+              Center(
+                child: Column(
+                  children: [_buildQRFrame(), const SizedBox(height: 30), _buildTimerIndicator()],
                 ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Point များ ရယူရန် သို့မဟုတ် လဲလှယ်ရန်",
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 40),
+              ),
 
-                // QR Code Box
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: QrImageView(
-                    data: userId, // QR ထဲတွင် သိမ်းဆည်းမည့် Data
-                    version: QrVersions.auto,
-                    size: 250.0,
-                    gapless: false,
-                    foregroundColor: const Color(0xFF1B4F72), // QR အရောင်
-                    // Logo အလယ်မှာ ထည့်ချင်ရင် အောက်က code ကို သုံးပါ
-                    embeddedImage: const NetworkImage(
-                      'https://www.moonsungroup.com/wp-content/uploads/2024/11/moonsun_logo.png',
-                    ),
-                    embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(50, 50)),
-                  ),
-                ),
+              const SizedBox(height: 50),
+              _buildInstructions(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                const SizedBox(height: 30),
-
-                // Member ID ပြသခြင်း
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        // ID အပြည့်အစုံကို Clipboard ထဲထည့်မည်
-                        Clipboard.setData(ClipboardData(text: userId));
-
-                        // အသိပေးချက်ပြမည်
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text("ID အပြည့်အစုံကို Copy ကူးလိုက်ပါပြီ"),
-                            behavior: SnackBarBehavior.fixed,
-                            backgroundColor: const Color(0xFF1B4F72),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              // နောက်ဆုံး ၆ လုံးသာ ပြသခြင်း
-                              "ID: ...${userId.length > 6 ? userId.substring(userId.length - 6) : userId}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                letterSpacing: 1.2,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF1B4F72)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 50),
-
-                // ပိတ်ရန် ခလုတ်
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC62828), // MOONSUN Red
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text(
-                      "ပိတ်ရန်",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ],
+  Widget _buildSecurityBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.security, color: Colors.blue.shade700),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              "ဤ QR Code သည် စက္ကန့် ၃၀ ပြည့်တိုင်း အလိုအလျောက် ပြောင်းလဲနေပါမည်။",
+              style: TextStyle(fontSize: 12, color: Colors.blue),
             ),
-          );
-        },
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildQRFrame() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(
+          color: _secondsRemaining < 10 ? Colors.red.shade300 : Colors.blue.shade100,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: QrImageView(
+        data: _qrData,
+        version: QrVersions.auto,
+        size: 240.0,
+        // Logo ထည့်သွင်းခြင်း
+        embeddedImage: const AssetImage('assets/images/moonsun_logo.png'),
+        embeddedImageStyle: const QrEmbeddedImageStyle(
+          size: Size(50, 50), // Logo အရွယ်အစား
+        ),
+        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1A1A1A)),
+        dataModuleStyle: const QrDataModuleStyle(
+          dataModuleShape: QrDataModuleShape.square,
+          color: Color(0xFF1A1A1A),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimerIndicator() {
+    return Column(
+      children: [
+        SizedBox(
+          width: 200,
+          child: LinearProgressIndicator(
+            value: _secondsRemaining / 30,
+            backgroundColor: Colors.grey.shade100,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              _secondsRemaining < 10 ? Colors.red : Colors.blue,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "သက်တမ်းကုန်ရန်: $_secondsRemaining စက္ကန့်",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            color: _secondsRemaining < 10 ? Colors.red : Colors.grey.shade700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInstructions() {
+    return Column(
+      children: [
+        _instructionItem(Icons.screenshot_outlined, "Screenshot အဟောင်းများ အသုံးပြု၍မရပါ။"),
+        const SizedBox(height: 12),
+        _instructionItem(Icons.phonelink_ring_outlined, "ဝန်ထမ်းအား ဤ Screen ကို တိုက်ရိုက်ပြသပါ။"),
+      ],
+    );
+  }
+
+  Widget _instructionItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.grey),
+        const SizedBox(width: 12),
+        Text(text, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+      ],
     );
   }
 }

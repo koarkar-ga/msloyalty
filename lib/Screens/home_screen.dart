@@ -160,7 +160,7 @@ class HomeScreen extends StatelessWidget {
                                 icon: const Icon(Icons.qr_code_2, color: Colors.white, size: 32),
                                 onPressed: () => Navigator.of(
                                   context,
-                                ).push(MaterialPageRoute(builder: (context) => ShowMyQRScreen())),
+                                ).push(MaterialPageRoute(builder: (context) => MyQrScreen())),
                               ),
                             ],
                           ),

@@ -42,7 +42,12 @@ class FuelHistoryTab extends StatelessWidget {
     final supabase = Supabase.instance.client;
 
     return StreamBuilder(
-      stream: supabase.from('fuel_transactions').stream(primaryKey: ['id']).order('created_at'),
+      stream: supabase
+          .from('fuel_transactions')
+          .stream(primaryKey: ['id'])
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .order('created_at')
+          .order('created_at'),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final data = snapshot.data!;

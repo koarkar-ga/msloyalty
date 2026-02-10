@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
 import 'package:msloyalty/Helpers/open_scanner.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 
@@ -52,7 +53,7 @@ class ActionMenuSheet extends StatelessWidget {
                 color: const Color(0xFF1B4F72),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShowMyQRScreen()),
+                  MaterialPageRoute(builder: (context) => const DynamicQRRewardScreen()),
                 ),
               ),
               // Option 2: Scan QR (အခြား QR များ ဖတ်ရန်)
