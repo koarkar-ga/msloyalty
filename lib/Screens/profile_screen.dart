@@ -164,7 +164,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 _buildInfoTile(Icons.card_membership, "Member ID", userData?['member_id'] ?? "N/A"),
                 _buildInfoTile(Icons.workspace_premium, "အဖွဲ့ဝင်အဆင့်", "$memberType MEMBER"),
-                _buildInfoTile(Icons.stars, "လက်ရှိ ရမှတ်", "${userData?['points'] ?? 0} Points"),
+                _buildInfoTile(
+                  Icons.stars,
+                  "လက်ရှိ ရမှတ်",
+                  "${userData?['total_points'] ?? 0} Points",
+                ),
                 const Divider(height: 40),
                 _buildLogoutButton(context),
               ],

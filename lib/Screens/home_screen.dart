@@ -95,6 +95,7 @@ class HomeScreen extends StatelessWidget {
           ),
           body: Consumer<PointProvider>(
             builder: (context, provider, child) {
+              provider.fetchUserData();
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -231,7 +232,8 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           floatingActionButton: const CustomScannerFAB(),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         );
       },
     );
