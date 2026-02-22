@@ -3,6 +3,7 @@ import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
 import 'package:msloyalty/Screens/home_screen.dart';
 import 'package:msloyalty/Screens/login_screen.dart';
+import 'package:msloyalty/Screens/notification_screen.dart';
 import 'package:msloyalty/Screens/signup_screen.dart';
 import 'package:msloyalty/Screens/splash_screen.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,7 @@ class MSLoyaltyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => HomeScreen(),
         '/signup': (context) => SignupPage(),
+        '/notification': (context) => NotificationScreen(),
       },
     );
   }

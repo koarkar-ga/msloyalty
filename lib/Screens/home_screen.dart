@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Constants/constant.dart';
 import 'package:msloyalty/Helpers/custom_fab_home.dart';
+import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
 import 'package:msloyalty/Helpers/promo_banner_slider.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
@@ -8,11 +10,33 @@ import 'package:msloyalty/Screens/gift_card_voucher.dart';
 import 'package:msloyalty/Screens/history_screen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
 import 'package:msloyalty/Screens/station_list_screen.dart';
+import 'package:msloyalty/Services/noti_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final supabase = Supabase.instance.client;
+  // Stream ကို သီးသန့်ထုတ်ထားခြင်းဖြင့် UI တည်ငြိမ်စေသည်
+
+  int notiCount = 0;
+  @override
+  void initState() {
+    super.initState();
+    // 'notifications' table မှ 'is_read' false ဖြစ်နေသည်များကို stream လုပ်ခြင်း
+    // မှတ်ချက် - သင်၏ table အမည်နှင့် column အမည်ကို လိုအပ်သလို ပြင်ဆင်ပါ
+    notificationStream = supabase
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('is_read', false)
+        .map((List<Map<String, dynamic>> data) => data.length);
+  }
 
   // HEX Color String မှ Flutter Color သို့ ပြောင်းလဲခြင်း
   Color _getColorFromHex(String? hexColor) {
@@ -72,9 +96,46 @@ class HomeScreen extends StatelessWidget {
             elevation: 0,
             title: Image.asset("assets/images/moonsun_logo.png", height: 40),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.black),
-                onPressed: () {},
+              StreamBuilder(
+                stream: notificationStream,
+                builder: (context, notiSnapshot) {
+                  // Noti count ကို ရယူခြင်း (data မရှိပါက 0)
+                  notiCount = notiSnapshot.hasData ? notiSnapshot.data! : 0;
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none, color: Colors.black),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed('/notification');
+                        },
+                      ),
+
+                      // အကယ်၍ မဖတ်ရသေးသော notification ရှိမှသာ Badge ပြရန်
+                      if (notiCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            child: Text(
+                              notiCount > 9 ? '9+' : '$notiCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               GestureDetector(
                 onTap: () => Navigator.push(
@@ -159,9 +220,9 @@ class HomeScreen extends StatelessWidget {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.qr_code_2, color: Colors.white, size: 32),
-                                onPressed: () => Navigator.of(
-                                  context,
-                                ).push(MaterialPageRoute(builder: (context) => MyQrScreen())),
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => DynamicQRRewardScreen()),
+                                ),
                               ),
                             ],
                           ),

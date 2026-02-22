@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Services/noti_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,31 +18,35 @@ class _DynamicQRRewardScreenState extends State<DynamicQRRewardScreen> {
   String _qrData = "";
   int _secondsRemaining = 30;
   Timer? _timer;
-
+  NotificationService notService = NotificationService();
+  User? user;
   @override
   void initState() {
     super.initState();
+
+    user = supabase.auth.currentUser;
+    notService.listenToPointUpdates(context, user!.id);
     _generateSecureQR();
     _startTimer();
   }
 
   void _generateSecureQR() {
-    final user = supabase.auth.currentUser;
     if (user == null) return;
 
     final int timestamp = DateTime.now().millisecondsSinceEpoch;
     const String appSecret = "MS_ENERGY_SECRET_KEY_2024";
 
-    final bytes = utf8.encode("${user.id}_${timestamp}_$appSecret");
+    final bytes = utf8.encode("${user!.id}_${timestamp}_$appSecret");
     final String hash = sha256.convert(bytes).toString();
 
-    final Map<String, dynamic> secureData = {"uid": user.id, "t": timestamp, "h": hash};
+    final Map<String, dynamic> secureData = {"uid": user!.id, "t": timestamp, "h": hash};
 
     if (mounted) {
       setState(() {
         _qrData = jsonEncode(secureData);
         _secondsRemaining = 30;
       });
+      print(_qrData);
     }
   }
 
@@ -154,21 +159,20 @@ class _DynamicQRRewardScreenState extends State<DynamicQRRewardScreen> {
           alignment: Alignment.center,
           children: [
             SizedBox(
-              height: 60,
-              width: 60,
-              child: CircularProgressIndicator(
+              height: 3,
+              width: 200,
+              child: LinearProgressIndicator(
                 value: _secondsRemaining / 30,
-                strokeWidth: 6,
                 backgroundColor: Colors.grey[200],
                 valueColor: AlwaysStoppedAnimation<Color>(
                   _secondsRemaining < 10 ? Colors.red : Colors.blue,
                 ),
               ),
             ),
-            Text(
-              "$_secondsRemaining",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
+            // Text(
+            //   "$_secondsRemaining",
+            //   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            // ),
           ],
         ),
         const SizedBox(height: 15),

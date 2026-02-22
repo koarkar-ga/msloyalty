@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Supabase Storage သို့ Upload တင်ခြင်း
       await Supabase.instance.client.storage
-          .from('profiles')
+          .from('moonsun_assets')
           .upload(
             filePath,
             file,
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Public URL ရယူခြင်း
       final String publicUrl = Supabase.instance.client.storage
-          .from('profiles')
+          .from('moonsun_assets')
           .getPublicUrl(filePath);
 
       // Profile Table တွင် URL အသစ်ကို Update လုပ်ခြင်း
@@ -66,6 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {});
       }
     } catch (e) {
+      print("Error: ${e.toString()}");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: ${e.toString()}"), backgroundColor: Colors.red),
