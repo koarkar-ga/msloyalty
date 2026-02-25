@@ -8,9 +8,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SetPasswordPage extends StatefulWidget {
   final String phone;
   final String name;
+  final String? email;
+  final DateTime? dob;
   final File? imageFile;
 
-  const SetPasswordPage({super.key, required this.phone, required this.name, this.imageFile});
+  const SetPasswordPage({
+    super.key,
+    required this.phone,
+    required this.name,
+    required this.dob,
+    required this.email,
+    required this.imageFile,
+  });
 
   @override
   State<SetPasswordPage> createState() => _SetPasswordPageState();
@@ -44,8 +53,12 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
         // ၂။ ပုံတင်ခြင်း
         if (widget.imageFile != null) {
           final String filePath = 'public/profile_${widget.phone}.jpg';
-          await supabase.storage.from('moonsun_assets').upload(filePath, widget.imageFile!);
-          imageUrl = supabase.storage.from('moonsun_assets').getPublicUrl(filePath);
+          await supabase.storage
+              .from('moonsun_assets')
+              .upload(filePath, widget.imageFile!);
+          imageUrl = supabase.storage
+              .from('moonsun_assets')
+              .getPublicUrl(filePath);
         }
 
         // ၃။ Profile Table သိမ်းခြင်း
@@ -54,6 +67,8 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
           'full_name': widget.name,
           'phone_number': widget.phone,
           'avatar_url': imageUrl,
+          'dob': null, // Date of Birth ကို မထည့်သွင်းထားပါ
+          'email': "${widget.phone}@moonsungroup.com",
           'member_id': "MS-${Random().nextInt(99999)}",
           'total_points': 500,
         });

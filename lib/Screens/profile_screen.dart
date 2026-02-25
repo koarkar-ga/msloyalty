@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:msloyalty/Constants/constant.dart';
 import 'package:msloyalty/Services/security_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,7 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final file = File(image.path);
       final fileExt = image.path.split('.').last;
-      final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final fileName =
+          '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final filePath = 'avatars/$fileName';
 
       // Supabase Storage သို့ Upload တင်ခြင်း
@@ -69,7 +71,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print("Error: ${e.toString()}");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Error: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -91,7 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ကိုယ်ရေးအကျဉ်း", style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "ကိုယ်ရေးအကျဉ်း",
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -102,14 +110,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _getUserProfile(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !_isUploading) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !_isUploading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final userData = snapshot.data;
           final String fullName = userData?['full_name'] ?? "အမည်မရှိ";
           final String? avatarUrl = userData?['avatar_url'];
-          final String memberType = userData?['member_types']?['name'] ?? "GOLD";
+          final String phoneNumber = userData?['phone_number'] ?? "N/A";
+          final String email = userData?['email'] ?? "N/A";
+          final String dob = userData?['dob'] ?? "N/A";
+          final String memberType =
+              userData?['member_types']?['name'] ?? "GOLD";
 
           return SingleChildScrollView(
             child: Column(
@@ -121,9 +134,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       CircleAvatar(
                         radius: 55,
                         backgroundColor: const Color(0xFF1B4F72),
-                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                        backgroundImage: avatarUrl != null
+                            ? NetworkImage(avatarUrl)
+                            : null,
                         child: avatarUrl == null
-                            ? const Icon(Icons.person, size: 55, color: Colors.white)
+                            ? const Icon(
+                                Icons.person,
+                                size: 55,
+                                color: Colors.white,
+                              )
                             : null,
                       ),
                       if (_isUploading)
@@ -134,7 +153,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: const Center(
-                              child: CircularProgressIndicator(color: Colors.white),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -149,7 +170,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Color(0xFF1B4F72),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
@@ -157,14 +182,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 25),
-                _buildInfoTile(Icons.person_outline, "အမည်", fullName),
+                _buildInfoTile(
+                  Icons.person_outline,
+                  "Name",
+                  fullName,
+                  onEdit: () => _editData(context, "Fullname", fullName),
+                ),
                 _buildInfoTile(
                   Icons.phone_android,
-                  "ဖုန်းနံပါတ်",
-                  userData?['phone_number'] ?? "N/A",
+                  "Phone",
+                  phoneNumber,
+                  onEdit: () => _editData(context, "Phone_Number", phoneNumber),
                 ),
-                _buildInfoTile(Icons.card_membership, "Member ID", userData?['member_id'] ?? "N/A"),
-                _buildInfoTile(Icons.workspace_premium, "အဖွဲ့ဝင်အဆင့်", "$memberType MEMBER"),
+                _buildInfoTile(
+                  Icons.email_outlined,
+                  "Email",
+                  email ?? "N/A",
+                  onEdit: () => _editData(context, "Email", email),
+                ),
+                _buildInfoTile(
+                  Icons.calendar_month_outlined,
+                  "DOB",
+                  dob ?? "N/A",
+                  onEdit: () => _editData(context, "DOB", dob),
+                ),
+                _buildInfoTile(
+                  Icons.card_membership,
+                  "Member ID",
+                  userData?['member_id'] ?? "N/A",
+                ),
+                _buildInfoTile(
+                  Icons.workspace_premium,
+                  "အဖွဲ့ဝင်အဆင့်",
+                  "$memberType MEMBER",
+                ),
                 _buildInfoTile(
                   Icons.stars,
                   "လက်ရှိ ရမှတ်",
@@ -180,8 +231,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String title, String value) {
+  Widget _buildInfoTile(
+    IconData icon,
+    String title,
+    String value, {
+    VoidCallback? onEdit, // Edit function အတွက် parameter
+  }) {
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -190,8 +247,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Icon(icon, color: const Color(0xFF1B4F72)),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-      subtitle: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 12, color: Colors.grey),
+      ),
+      subtitle: Text(
+        value,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      // ညာဘက်အစွန်တွင် Edit Button ထည့်သွင်းခြင်း
+      trailing: onEdit != null
+          ? IconButton(
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: Color(0xFF1B4F72),
+                size: 20,
+              ),
+              onPressed: onEdit,
+              tooltip: "ပြင်ဆင်ရန်",
+              constraints: const BoxConstraints(), // Padding လျှော့ချရန်
+              padding: EdgeInsets.zero,
+            )
+          : null,
     );
   }
 
@@ -204,10 +281,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ElevatedButton.icon(
           onPressed: () async {
             await Supabase.instance.client.auth.signOut();
-            final SharedPreferences prefs = await SharedPreferences.getInstance();
+            final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
             if (context.mounted) {
               handleForceLogout(context, prefs);
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (route) => false,
+              );
             }
           },
           icon: const Icon(Icons.logout),
@@ -215,10 +297,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red.shade800,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void _editData(BuildContext context, String title, String previousData) {
+    final TextEditingController _textController = TextEditingController(
+      text: '$previousData',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("ပြင်ဆင်ရန်"),
+          content: title == 'DOB'
+              ? buildDateField(context, _textController)
+              : TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    labelText: title,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancle"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final updateData = _textController.text.trim();
+                if (updateData.isEmpty) return;
+
+                try {
+                  final user = Supabase.instance.client.auth.currentUser;
+                  if (user == null) return;
+
+                  await Supabase.instance.client
+                      .from('profiles')
+                      .update({title.toLowerCase(): updateData})
+                      .eq('id', user.id);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Successfully updated"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    setState(() {});
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  print("Error updating name: ${e.toString()}");
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error updating name: ${e.toString()}"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
     );
   }
 }

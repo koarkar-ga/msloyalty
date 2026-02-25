@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:msloyalty/Constants/Config.dart';
+import 'package:msloyalty/Constants/constant.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:msloyalty/Screens/set_password.dart';
 import 'package:msloyalty/Services/smspoh_service.dart';
@@ -16,6 +17,8 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>(); // Validation အတွက်
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _dobController = TextEditingController();
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
 
@@ -41,7 +44,10 @@ class _SignupPageState extends State<SignupPage> {
           .maybeSingle();
 
       if (existingUser != null) {
-        _showSnackBar("ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်", isError: true);
+        _showSnackBar(
+          "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်",
+          isError: true,
+        );
       } else {
         // SMSPoh Service ကို အသုံးပြုခြင်း
         final response = await SMSPohService.requestOTP(phone);
@@ -98,6 +104,8 @@ class _SignupPageState extends State<SignupPage> {
       context,
       MaterialPageRoute(
         builder: (context) => SetPasswordPage(
+          email: _emailController.text.trim(),
+          dob: DateTime.tryParse(_dobController.text.trim()),
           phone: _phoneController.text.trim(),
           name: _nameController.text.trim(),
           imageFile: _imageFile,
@@ -129,16 +137,20 @@ class _SignupPageState extends State<SignupPage> {
                 padding: const EdgeInsets.all(25.0),
                 child: Column(
                   children: [
-                    _buildTextField(
+                    buildTextField(
                       _nameController,
-                      "အမည်အပြည့်အစုံ",
+                      "Username",
                       Icons.person,
                       enabled: !_isOtpSent,
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(
+                    buildEmailField(_emailController),
+                    const SizedBox(height: 20),
+                    buildDateField(context, _dobController),
+                    const SizedBox(height: 20),
+                    buildTextField(
                       _phoneController,
-                      "ဖုန်းနံပါတ်",
+                      "Phone Number",
                       Icons.phone,
                       isPhone: true,
                       enabled: !_isOtpSent,
@@ -146,7 +158,7 @@ class _SignupPageState extends State<SignupPage> {
 
                     if (_isOtpSent) ...[
                       const SizedBox(height: 20),
-                      _buildTextField(
+                      buildTextField(
                         _otpController,
                         "OTP ၆ လုံး ရိုက်ထည့်ပါ",
                         Icons.lock_clock,
@@ -162,7 +174,12 @@ class _SignupPageState extends State<SignupPage> {
                     ],
 
                     const SizedBox(height: 40),
-                    _buildSubmitButton(),
+                    buildSubmitButton(
+                      _isLoading,
+                      _isOtpSent,
+                      _requestOTP,
+                      _verifyAndNext,
+                    ),
                   ],
                 ),
               ),
@@ -195,14 +212,19 @@ class _SignupPageState extends State<SignupPage> {
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, spreadRadius: 2),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
               ],
             ),
             child: Image.network(
               Config.logoImage, // သင့် Config ထဲက Logo URL
               height: 60,
               errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.person_add_alt_1_rounded, // Signup အတွက် အိုင်ကွန်ပြောင်းထားသည်
+                Icons
+                    .person_add_alt_1_rounded, // Signup အတွက် အိုင်ကွန်ပြောင်းထားသည်
                 size: 50,
                 color: Color(0xFF1B4F72),
               ),
@@ -230,62 +252,12 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon, {
-    bool isPhone = false,
-    bool isOtp = false,
-    bool enabled = true,
-  }) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: isPhone || isOtp ? TextInputType.number : TextInputType.text,
-      maxLength: isOtp ? 6 : (isPhone ? 11 : null),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF1B4F72)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-        filled: !enabled,
-        fillColor: Colors.grey[100],
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) return "$label ဖြည့်သွင်းပါ";
-        if (isPhone && value.length < 9) return "ဖုန်းနံပါတ် မှားယွင်းနေပါသည်";
-        return null;
-      },
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : (_isOtpSent ? _verifyAndNext : _requestOTP),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFC62828),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          elevation: 5,
-        ),
-        child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Text(
-                _isOtpSent ? "ကုဒ်စစ်ဆေးမည်" : "OTP တောင်းဆိုမည်",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-      ),
-    );
-  }
-
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: isError ? Colors.red : Colors.green),
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
     );
   }
 }
