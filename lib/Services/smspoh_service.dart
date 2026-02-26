@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:msloyalty/Helpers/showSnackBar.dart';
 
 class SMSPohService {
   // သင်၏ API Access Token ကို ဒီမှာထည့်ပါ
@@ -31,5 +33,37 @@ class SMSPohService {
     } catch (e) {
       return null;
     }
+  }
+
+  // ၃။ Verify & Navigate
+  static Future<void> verifyAndNext(
+    BuildContext context,
+    TextEditingController otpController,
+    String phoneNumber,
+    int? lastRequestId,
+    void router,
+  ) async {
+    if (otpController.text.length < 6) {
+      showSnackBar(context, "OTP ၆ လုံး မှန်ကန်စွာ ရိုက်ထည့်ပါ", isError: true);
+      return;
+    }
+
+    try {
+      // SMSPoh Verify (သင့် API Key ကို အသုံးပြုပါ)
+      final verifyUrl = "https://v3.smspoh.com/api/otp/verify";
+      final response = await http.post(
+        Uri.parse(verifyUrl),
+        body: {
+          'accessToken':
+              'RnJES3dfNlMyY3U0M2drOVZuNTQ4eThhMUtLWGxnLVA6aHFqYzVUN2J1NUdLRXlxR3Ita1VWUzBDUUw3bnpuamQ',
+          'to': phoneNumber,
+          'code': otpController.text.trim(),
+          'requestId': lastRequestId,
+        },
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      showSnackBar(context, "Verification Error: $e", isError: true);
+    } finally {}
   }
 }

@@ -92,34 +92,34 @@ Widget buildDateField(BuildContext context, TextEditingController controller) {
   );
 }
 
-Widget buildSubmitButton(
-  bool _isLoading,
-  bool _isOtpSent,
-  VoidCallback _requestOTP,
-  VoidCallback _verifyAndNext,
-) {
-  return SizedBox(
-    width: double.infinity,
-    height: 55,
-    child: ElevatedButton(
-      onPressed: _isLoading
-          ? null
-          : (_isOtpSent ? _verifyAndNext : _requestOTP),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFC62828),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        elevation: 5,
-      ),
-      child: _isLoading
-          ? const CircularProgressIndicator(color: Colors.white)
-          : Text(
-              _isOtpSent ? "ကုဒ်စစ်ဆေးမည်" : "OTP တောင်းဆိုမည်",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-    ),
-  );
-}
+// Widget buildSubmitButton(
+//   bool _isLoading,
+//   bool _isOtpSent,
+//   VoidCallback _requestOTP,
+//   VoidCallback _verifyAndNext,
+// ) {
+//   return SizedBox(
+//     width: double.infinity,
+//     height: 55,
+//     child: ElevatedButton(
+//       onPressed: _isLoading
+//           ? null
+//           : (_isOtpSent ? _verifyAndNext : _requestOTP),
+//       style: ElevatedButton.styleFrom(
+//         backgroundColor: const Color(0xFFC62828),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+//         elevation: 5,
+//       ),
+//       child: _isLoading
+//           ? const CircularProgressIndicator(color: Colors.white)
+//           : Text(
+//               _isOtpSent ? "ကုဒ်စစ်ဆေးမည်" : "OTP တောင်းဆိုမည်",
+//               style: const TextStyle(
+//                 color: Colors.white,
+//                 fontSize: 18,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//     ),
+//   );
+// }

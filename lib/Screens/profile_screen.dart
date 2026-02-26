@@ -1,8 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:msloyalty/Constants/constant.dart';
+import 'package:msloyalty/Helpers/showSnackBar.dart';
+import 'package:msloyalty/Helpers/upload_photo.dart';
+import 'package:msloyalty/Screens/OtpRequestScreen.dart';
 import 'package:msloyalty/Services/security_service.dart';
+import 'package:msloyalty/Services/smspoh_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,6 +21,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isUploading = false;
   final ImagePicker _imagePicker = ImagePicker();
+  bool isOtpSent = false;
+  int? lastOtpRequestId = 0;
 
   // Profile Image ကို Gallery မှ ရွေးချယ်ပြီး Supabase သို့ တင်ခြင်း
   Future<void> _pickAndUploadImage() async {
@@ -120,9 +127,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final String? avatarUrl = userData?['avatar_url'];
           final String phoneNumber = userData?['phone_number'] ?? "N/A";
           final String email = userData?['email'] ?? "N/A";
-          final String dob = userData?['dob'] ?? "N/A";
+          DateTime dob = DateTime.parse(userData!['dob']);
           final String memberType =
               userData?['member_types']?['name'] ?? "GOLD";
+
+          // 1. String ကို DateTime object အဖြစ်ပြောင်းခြင်း
+          DateTime birthDate = DateTime.parse(userData['dob']);
+
+          // 2. လက်ရှိအချိန်နှင့် နှုတ်ခြင်း (Result is a Duration object)
+          Duration difference = DateTime.now().difference(birthDate);
+
+          // 3. အသက်ကို နှစ်အလိုက် တွက်ချက်ခြင်း (ခန့်မှန်းခြေ 365.25 ရက်ဖြင့်စား)
+          int years = (difference.inDays / 365.25).floor();
+          print(years);
+
+          // ပိုမိုတိကျသော တွက်ချက်မှု (နှစ်၊ လ၊ ရက် ခွဲထုတ်ခြင်း)
+          int daysRemaining = difference.inDays % 365;
 
           return SingleChildScrollView(
             child: Column(
@@ -192,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Icons.phone_android,
                   "Phone",
                   phoneNumber,
-                  onEdit: () => _editData(context, "Phone_Number", phoneNumber),
+                  onEdit: () => _editData(context, "phone_number", phoneNumber),
                 ),
                 _buildInfoTile(
                   Icons.email_outlined,
@@ -203,8 +223,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildInfoTile(
                   Icons.calendar_month_outlined,
                   "DOB",
-                  dob ?? "N/A",
-                  onEdit: () => _editData(context, "DOB", dob),
+                  "${DateFormat("dd-MM-yyyy").format(dob).toString()}  -- ($years)" ??
+                      "N/A",
+                  onEdit: () => _editData(
+                    context,
+                    "DOB",
+                    "${DateFormat("dd-MM-yyyy").format(dob).toString()}",
+                  ),
                 ),
                 _buildInfoTile(
                   Icons.card_membership,
@@ -213,12 +238,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 _buildInfoTile(
                   Icons.workspace_premium,
-                  "အဖွဲ့ဝင်အဆင့်",
+                  "Member Type",
                   "$memberType MEMBER",
                 ),
                 _buildInfoTile(
                   Icons.stars,
-                  "လက်ရှိ ရမှတ်",
+                  "Points",
                   "${userData?['total_points'] ?? 0} Points",
                 ),
                 const Divider(height: 40),
@@ -306,6 +331,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> checkPhoneNumber(
+    String phoneNumber,
+    bool isOtpSent,
+    int? lastRequestId,
+  ) async {
+    try {
+      // ဖုန်းနံပါတ် ရှိပြီးသားလား အရင်စစ်
+      final existingUser = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('phone_number', phoneNumber)
+          .maybeSingle();
+
+      if (existingUser != null) {
+        showSnackBar(
+          context,
+          "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်",
+          isError: true,
+        );
+      } else {
+        // SMSPoh Service ကို အသုံးပြုခြင်း
+        final response = await SMSPohService.requestOTP(phoneNumber);
+        print(response);
+        if (response != null) {
+          setState(() {
+            isOtpSent = true;
+            lastRequestId = response['requestId'];
+          });
+
+          // ignore: use_build_context_synchronously
+          showSnackBar(context, "OTP ကုဒ်ကို SMS ပို့လိုက်ပါပြီ");
+        } else {
+          // ignore: use_build_context_synchronously
+          showSnackBar(context, "SMS ပို့ဆောင်မှု မအောင်မြင်ပါ", isError: true);
+        }
+      }
+    } catch (e) {}
+  }
+
   void _editData(BuildContext context, String title, String previousData) {
     final TextEditingController _textController = TextEditingController(
       text: '$previousData',
@@ -331,41 +395,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: const Text("Cancle"),
             ),
             ElevatedButton(
-              onPressed: () async {
-                final updateData = _textController.text.trim();
-                if (updateData.isEmpty) return;
+              onPressed: title.toLowerCase() == "phone_number"
+                  ? () {
+                      checkPhoneNumber(
+                        _textController.text.trim(),
+                        isOtpSent,
+                        lastOtpRequestId,
+                      );
+                      isOtpSent
+                          ? Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => OtpScreen(
+                                  phone: _textController.text.trim(),
+                                  requestId: lastOtpRequestId,
+                                ),
+                              ),
+                            )
+                          : Navigator.of(context).pop();
+                    }
+                  : () async {
+                      final updateData = _textController.text.trim();
+                      if (updateData.isEmpty) return;
 
-                try {
-                  final user = Supabase.instance.client.auth.currentUser;
-                  if (user == null) return;
+                      try {
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user == null) return;
 
-                  await Supabase.instance.client
-                      .from('profiles')
-                      .update({title.toLowerCase(): updateData})
-                      .eq('id', user.id);
+                        await Supabase.instance.client
+                            .from('profiles')
+                            .update({title.toLowerCase(): updateData})
+                            .eq('id', user.id);
 
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Successfully updated"),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    setState(() {});
-                    Navigator.pop(context);
-                  }
-                } catch (e) {
-                  print("Error updating name: ${e.toString()}");
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Error updating name: ${e.toString()}"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Successfully updated"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          setState(() {});
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        print("Error updating name: ${e.toString()}");
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Error updating name: ${e.toString()}",
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
               child: const Text("OK"),
             ),
           ],

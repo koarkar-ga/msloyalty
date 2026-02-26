@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Constants/constant.dart';
+import 'package:msloyalty/Helpers/showSnackBar.dart';
+import 'package:msloyalty/Screens/OtpRequestScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:msloyalty/Screens/set_password.dart';
 import 'package:msloyalty/Services/smspoh_service.dart';
@@ -25,11 +27,11 @@ class _SignupPageState extends State<SignupPage> {
   File? _imageFile;
   bool _isOtpSent = false;
   bool _isLoading = false;
-  int? _lastRequestId;
+  int? lastRequestId;
   final supabase = Supabase.instance.client;
 
   // ၂။ အဆင့်မြင့် OTP Request Logic
-  Future<void> _requestOTP() async {
+  Future<void> _checkPhoneNumber() async {
     if (!_formKey.currentState!.validate()) return; // Form မပြည့်စုံရင် ရပ်မယ်
 
     setState(() => _isLoading = true);
@@ -44,7 +46,8 @@ class _SignupPageState extends State<SignupPage> {
           .maybeSingle();
 
       if (existingUser != null) {
-        _showSnackBar(
+        showSnackBar(
+          context,
           "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်",
           isError: true,
         );
@@ -55,63 +58,27 @@ class _SignupPageState extends State<SignupPage> {
         if (response != null) {
           setState(() {
             _isOtpSent = true;
-            _lastRequestId = response['requestId'];
+            lastRequestId = response['requestId'];
           });
-          _showSnackBar("OTP ကုဒ်ကို SMS ပို့လိုက်ပါပြီ");
+          // ignore: use_build_context_synchronously
+          showSnackBar(context, "OTP ကုဒ်ကို SMS ပို့လိုက်ပါပြီ");
+          Navigator.push(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  OtpScreen(phone: phone, requestId: lastRequestId),
+            ),
+          );
         } else {
-          _showSnackBar("SMS ပို့ဆောင်မှု မအောင်မြင်ပါ", isError: true);
+          showSnackBar(context, "SMS ပို့ဆောင်မှု မအောင်မြင်ပါ", isError: true);
         }
       }
     } catch (e) {
-      _showSnackBar("Error: $e", isError: true);
+      showSnackBar(context, "Error: $e", isError: true);
     } finally {
       setState(() => _isLoading = false);
     }
-  }
-
-  // ၃။ Verify & Navigate
-  Future<void> _verifyAndNext() async {
-    if (_otpController.text.length < 6) {
-      _showSnackBar("OTP ၆ လုံး မှန်ကန်စွာ ရိုက်ထည့်ပါ", isError: true);
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      // SMSPoh Verify (သင့် API Key ကို အသုံးပြုပါ)
-      final verifyUrl = "https://v3.smspoh.com/api/otp/verify";
-      final response = await http.post(
-        Uri.parse(verifyUrl),
-        body: {
-          'accessToken':
-              'RnJES3dfNlMyY3U0M2drOVZuNTQ4eThhMUtLWGxnLVA6aHFqYzVUN2J1NUdLRXlxR3Ita1VWUzBDUUw3bnpuamQ',
-          'to': _phoneController.text.trim(),
-          'code': _otpController.text.trim(),
-          'requestId': _lastRequestId.toString(),
-        },
-      );
-
-      _navigateToSetPassword();
-    } catch (e) {
-      _showSnackBar("Verification Error: $e", isError: true);
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _navigateToSetPassword() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SetPasswordPage(
-          email: _emailController.text.trim(),
-          dob: DateTime.tryParse(_dobController.text.trim()),
-          phone: _phoneController.text.trim(),
-          name: _nameController.text.trim(),
-          imageFile: _imageFile,
-        ),
-      ),
-    );
   }
 
   @override
@@ -156,30 +123,87 @@ class _SignupPageState extends State<SignupPage> {
                       enabled: !_isOtpSent,
                     ),
 
-                    if (_isOtpSent) ...[
-                      const SizedBox(height: 20),
-                      buildTextField(
-                        _otpController,
-                        "OTP ၆ လုံး ရိုက်ထည့်ပါ",
-                        Icons.lock_clock,
-                        isOtp: true,
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: _requestOTP,
-                          child: const Text("OTP ပြန်ပို့မည်"),
+                    // if (_isOtpSent) ...[
+                    //   const SizedBox(height: 20),
+                    //   buildTextField(
+                    //     _otpController,
+                    //     "OTP ၆ လုံး ရိုက်ထည့်ပါ",
+                    //     Icons.lock_clock,
+                    //     isOtp: true,
+                    //   ),
+                    //   Align(
+                    //     alignment: Alignment.centerRight,
+                    //     child: TextButton(
+                    //       onPressed: _checkPhoneNumber,
+                    //       child: const Text("OTP ပြန်ပို့မည်"),
+                    //     ),
+                    //   ),
+                    // ],
+                    const SizedBox(height: 40),
+                    MaterialButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) => OtpScreen(
+                            phone: _phoneController.text.trim(),
+                            requestId: lastRequestId,
+                          ),
                         ),
                       ),
-                    ],
+                      child: Card(
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
 
-                    const SizedBox(height: 40),
-                    buildSubmitButton(
-                      _isLoading,
-                      _isOtpSent,
-                      _requestOTP,
-                      _verifyAndNext,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _isOtpSent
+                                  ? "OTP ပြန်ပို့မည်"
+                                  : "OTP တောင်းဆိုမည်",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.send,
+                              color: Colors.green,
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+
+                    // buildSubmitButton(
+                    //   _isLoading,
+                    //   _isOtpSent,
+                    //   _checkPhoneNumber,
+                    //   () => SMSPohService.verifyAndNext(
+                    //     context,
+                    //     _otpController,
+                    //     _phoneController.text.trim(),
+                    //     lastRequestId,
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => SetPasswordPage(
+                    //           email: _emailController.text.trim(),
+                    //           dob: DateTime.tryParse(
+                    //             _dobController.text.trim(),
+                    //           ),
+                    //           phone: _phoneController.text.trim(),
+                    //           name: _nameController.text.trim(),
+                    //           imageFile: _imageFile,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ), //_navigateToSetPassword();
+                    // ),
                   ],
                 ),
               ),
@@ -248,15 +272,6 @@ class _SignupPageState extends State<SignupPage> {
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showSnackBar(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red : Colors.green,
       ),
     );
   }
