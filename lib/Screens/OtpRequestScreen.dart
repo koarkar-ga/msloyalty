@@ -1,11 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Screens/set_password.dart';
+import 'package:msloyalty/Services/smspoh_service.dart';
 
 class OtpScreen extends StatefulWidget {
   String phone;
   int? requestId;
-  OtpScreen({super.key, required this.phone, required this.requestId});
+  Map<String, dynamic>? data;
+
+  OtpScreen({
+    super.key,
+    required this.phone,
+    required this.requestId,
+    this.data,
+  });
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -73,16 +83,27 @@ class _OtpScreenState extends State<OtpScreen> {
     String otp = _controllers.map((e) => e.text).join();
     if (otp.length == 6) {
       setState(() => _isLoading = true);
-      // Simulate API Call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Verifying OTP: $otp'),
-            backgroundColor: const Color(0xFF1B4F72),
-          ),
-        );
-      });
+      widget.data == {}
+          ? SMSPohService.verifyAndNext(
+              context,
+              otp,
+              widget.phone,
+              widget.requestId,
+              SetPasswordPage(
+                phone: widget.phone,
+                name: widget.data!['name'],
+                dob: DateTime.parse(widget.data!['dob']),
+                email: widget.data!['email'],
+                imageFile: null,
+              ),
+            ).whenComplete(() => setState(() => _isLoading = false))
+          : SMSPohService.verifyAndNext(
+              context,
+              otp,
+              widget.phone,
+              widget.requestId,
+              Container(),
+            );
     }
   }
 

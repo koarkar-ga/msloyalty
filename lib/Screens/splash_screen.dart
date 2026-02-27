@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:msloyalty/Helpers/MoonSunLogoAnimation.dart';
 import 'package:msloyalty/Services/security_service.dart';
 import 'dart:async';
@@ -10,7 +11,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _pulseController;
   @override
@@ -18,7 +20,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     super.initState();
     // Logo ကို အနည်းဆုံး ၂ စက္ကန့်လောက် ပြထားချင်လို့ပါ
     // For Ring Rotation
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
 
     // For Text Pulsing
     _pulseController = AnimationController(
@@ -44,13 +49,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1B4F72), // Brand Color
+      backgroundColor: Colors.white, // Brand Color
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            MoonSunLogoLoadingAnimator(controller: _controller, pulseController: _pulseController),
-            const SizedBox(height: 30),
+            MoonSunLoading(), // Animated Logo
+            const SizedBox(height: 20),
           ],
         ),
       ),

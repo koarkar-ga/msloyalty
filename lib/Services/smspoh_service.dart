@@ -38,12 +38,12 @@ class SMSPohService {
   // ၃။ Verify & Navigate
   static Future<void> verifyAndNext(
     BuildContext context,
-    TextEditingController otpController,
+    String otp,
     String phoneNumber,
     int? lastRequestId,
-    void router,
+    Widget navigator,
   ) async {
-    if (otpController.text.length < 6) {
+    if (otp.length < 6) {
       showSnackBar(context, "OTP ၆ လုံး မှန်ကန်စွာ ရိုက်ထည့်ပါ", isError: true);
       return;
     }
@@ -57,11 +57,18 @@ class SMSPohService {
           'accessToken':
               'RnJES3dfNlMyY3U0M2drOVZuNTQ4eThhMUtLWGxnLVA6aHFqYzVUN2J1NUdLRXlxR3Ita1VWUzBDUUw3bnpuamQ',
           'to': phoneNumber,
-          'code': otpController.text.trim(),
+          'code': otp,
           'requestId': lastRequestId,
         },
       );
-      Navigator.of(context).pop();
+      navigator == null
+          ? Navigator.of(context).pop()
+          : Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) => navigator),
+            );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => navigator),
+      );
     } catch (e) {
       showSnackBar(context, "Verification Error: $e", isError: true);
     } finally {}

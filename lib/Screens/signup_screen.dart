@@ -27,6 +27,7 @@ class _SignupPageState extends State<SignupPage> {
   File? _imageFile;
   bool _isOtpSent = false;
   bool _isLoading = false;
+  bool _isActive = false;
   int? lastRequestId;
   final supabase = Supabase.instance.client;
 
@@ -34,7 +35,10 @@ class _SignupPageState extends State<SignupPage> {
   Future<void> _checkPhoneNumber() async {
     if (!_formKey.currentState!.validate()) return; // Form မပြည့်စုံရင် ရပ်မယ်
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isActive = false;
+    });
     final phone = _phoneController.text.trim();
 
     try {
@@ -77,7 +81,10 @@ class _SignupPageState extends State<SignupPage> {
     } catch (e) {
       showSnackBar(context, "Error: $e", isError: true);
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _isActive = true;
+      });
     }
   }
 
@@ -123,87 +130,62 @@ class _SignupPageState extends State<SignupPage> {
                       enabled: !_isOtpSent,
                     ),
 
-                    // if (_isOtpSent) ...[
-                    //   const SizedBox(height: 20),
-                    //   buildTextField(
-                    //     _otpController,
-                    //     "OTP ၆ လုံး ရိုက်ထည့်ပါ",
-                    //     Icons.lock_clock,
-                    //     isOtp: true,
-                    //   ),
-                    //   Align(
-                    //     alignment: Alignment.centerRight,
-                    //     child: TextButton(
-                    //       onPressed: _checkPhoneNumber,
-                    //       child: const Text("OTP ပြန်ပို့မည်"),
-                    //     ),
-                    //   ),
-                    // ],
                     const SizedBox(height: 40),
                     MaterialButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (BuildContext context) => OtpScreen(
-                            phone: _phoneController.text.trim(),
-                            requestId: lastRequestId,
-                          ),
-                        ),
+                      color: const Color(0xFF1B4F72),
+                      disabledColor: Colors
+                          .grey[300], // Disable ဖြစ်နေချိန်မှာ ပြမယ့်အရောင်
+                      disabledTextColor: Colors.grey[600],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      child: Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _isOtpSent
-                                  ? "OTP ပြန်ပို့မည်"
-                                  : "OTP တောင်းဆိုမည်",
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.send,
-                              color: Colors.green,
-                              size: 18,
-                            ),
-                          ],
-                        ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 30,
+                      ),
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              _checkPhoneNumber();
+                            }, //_isOtpSent ? _verifyOtp : _checkPhoneNumber,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _isLoading
+                              ? Row(
+                                  children: [
+                                    CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    const Text(
+                                      "OTP ပေးပို့နေပါသည်...",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Text(
+                                  _isOtpSent
+                                      ? "OTP ပြန်ပို့မည်"
+                                      : "OTP တောင်းဆိုမည်",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.send, color: Colors.white, size: 18),
+                        ],
                       ),
                     ),
-
-                    // buildSubmitButton(
-                    //   _isLoading,
-                    //   _isOtpSent,
-                    //   _checkPhoneNumber,
-                    //   () => SMSPohService.verifyAndNext(
-                    //     context,
-                    //     _otpController,
-                    //     _phoneController.text.trim(),
-                    //     lastRequestId,
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //         builder: (context) => SetPasswordPage(
-                    //           email: _emailController.text.trim(),
-                    //           dob: DateTime.tryParse(
-                    //             _dobController.text.trim(),
-                    //           ),
-                    //           phone: _phoneController.text.trim(),
-                    //           name: _nameController.text.trim(),
-                    //           imageFile: _imageFile,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ), //_navigateToSetPassword();
-                    // ),
                   ],
                 ),
               ),
