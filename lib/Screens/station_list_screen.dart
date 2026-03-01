@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:msloyalty/Screens/station_detail_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -83,7 +84,7 @@ class _StationListScreenState extends State<StationListScreen> {
 
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: MoonSunLoading())
                 : filteredStations.isEmpty
                 ? const Center(child: Text("ဆိုင်စာရင်း မရှိသေးပါ"))
                 : ListView.builder(

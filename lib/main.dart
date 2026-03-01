@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/AppScreen.dart';
 import 'package:msloyalty/Constants/Config.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
-import 'package:msloyalty/Screens/OtpRequestScreen.dart';
 import 'package:msloyalty/Screens/home_screen.dart';
+
 import 'package:msloyalty/Screens/login_screen.dart';
 import 'package:msloyalty/Screens/notification_screen.dart';
 import 'package:msloyalty/Screens/signup_screen.dart';
@@ -15,12 +16,7 @@ void main() async {
 
   await Supabase.initialize(url: Config.supabaseUrl, anonKey: Config.anonKey);
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => PointProvider(),
-      child: const MSLoyaltyApp(),
-    ),
-  );
+  runApp(ChangeNotifierProvider(create: (context) => PointProvider(), child: const MSLoyaltyApp()));
 }
 
 class MSLoyaltyApp extends StatelessWidget {
@@ -39,9 +35,10 @@ class MSLoyaltyApp extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => HomeScreen(),
-        '/signup': (context) => SignupPage(),
-        '/notification': (context) => NotificationScreen(),
+        '/app': (context) => const LoyaltyApp(),
+        '/home': (context) => const HomeScreen(),
+        '/signup': (context) => const SignupPage(),
+        '/notification': (context) => const NotificationScreen(),
       },
     );
   }

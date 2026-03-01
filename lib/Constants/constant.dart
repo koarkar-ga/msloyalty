@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
-Stream<int> notificationStream = Stream<int>.periodic(
-  Duration(microseconds: 1),
-  (count) {
-    return 0; // Default value
-  },
-);
+Stream<int> notificationStream = Stream<int>.periodic(Duration(microseconds: 1), (count) {
+  return 0; // Default value
+});
 
 Widget buildTextField(
   TextEditingController controller,
@@ -60,15 +57,28 @@ Widget buildEmailField(TextEditingController controller) {
   );
 }
 
+// သင်ပေးထားတဲ့ Widget ကို Function အနေနဲ့ ပြန်လည်အသုံးပြုခြင်း
 Widget buildDateField(BuildContext context, TextEditingController controller) {
   return TextFormField(
     controller: controller,
     readOnly: true, // Keyboard မတက်စေရန်
+    style: const TextStyle(fontSize: 16),
     decoration: InputDecoration(
       labelText: "မွေးသက္ကရာဇ် (DOB)",
+      labelStyle: const TextStyle(color: Color(0xFF1B4F72)),
       prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF1B4F72)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xFF1B4F72), width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
       hintText: "ရက်စွဲ ရွေးချယ်ပါ",
+      filled: true,
+      fillColor: Colors.white,
     ),
     onTap: () async {
       DateTime? pickedDate = await showDatePicker(
@@ -76,6 +86,18 @@ Widget buildDateField(BuildContext context, TextEditingController controller) {
         initialDate: DateTime(2000), // စဖွင့်လျှင်ပြမည့်နှစ်
         firstDate: DateTime(1950), // ရွေးလို့ရမည့် အစောဆုံးနှစ်
         lastDate: DateTime.now(), // ရွေးလို့ရမည့် နောက်ဆုံးနှစ် (ယနေ့)
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xFF1B4F72), // Header background color
+                onPrimary: Colors.white, // Header text color
+                onSurface: Colors.black, // Body text color
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
 
       if (pickedDate != null) {

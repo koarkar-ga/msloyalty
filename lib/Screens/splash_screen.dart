@@ -11,8 +11,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _pulseController;
   @override
@@ -20,16 +19,11 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     // Logo ကို အနည်းဆုံး ၂ စက္ကန့်လောက် ပြထားချင်လို့ပါ
     // For Ring Rotation
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat();
 
     // For Text Pulsing
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 2))
+      ..repeat(reverse: true);
     _startInitialization();
   }
 
@@ -41,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startInitialization() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 5));
     print("Splash Screen Finished");
     checkUserSession(context);
   }

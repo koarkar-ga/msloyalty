@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart'; // ရက်စွဲပုံစံပြင်ရန်
 
@@ -49,7 +50,7 @@ class FuelHistoryTab extends StatelessWidget {
           .order('created_at')
           .order('created_at'),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) return Center(child: MoonSunLoading());
         final data = snapshot.data!;
 
         return ListView.builder(
@@ -101,7 +102,7 @@ class RedeemHistoryTab extends StatelessWidget {
     return StreamBuilder(
       stream: supabase.from('redemptions').stream(primaryKey: ['id']).order('created_at'),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData) return Center(child: MoonSunLoading());
         final data = snapshot.data!;
 
         return ListView.builder(

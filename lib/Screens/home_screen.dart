@@ -6,7 +6,7 @@ import 'package:msloyalty/Helpers/promo_banner_slider.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
 import 'package:msloyalty/Screens/fule_price_screen.dart';
-import 'package:msloyalty/Screens/gift_card_voucher.dart';
+import 'package:msloyalty/Screens/RewardScreen.dart';
 import 'package:msloyalty/Screens/history_screen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
 import 'package:msloyalty/Screens/station_list_screen.dart';
@@ -90,9 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final avatarUrl = snapshot.data?['avatar_url'];
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.black12,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.black12,
             elevation: 0,
             title: Image.asset("assets/images/moonsun_logo.png", height: 40),
             actions: [
@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           Icons.card_giftcard,
                           "ဆုလက်ဆောင်",
-                          const GiftCardScreen(),
+                          const RewardScreen(),
                         ),
                         _buildAction(context, Icons.history, "မှတ်တမ်း", const HistoryScreen()),
                         _buildAction(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Constants/constant.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:msloyalty/Screens/notification_detail_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
@@ -88,25 +89,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Colors.black87,
       appBar: AppBar(
         title: const Text(
           "အသိပေးချက်များ",
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black87,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (_notifications.any((n) => n['is_read'] == false))
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text("အားလုံးဖတ်ပြီး", style: TextStyle(color: Color(0xFF1B4F72))),
+              child: const Text("အားလုံးဖတ်ပြီး", style: TextStyle(color: Colors.white)),
             ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: MoonSunLoading())
           : _notifications.isEmpty
           ? _buildEmptyState()
           : RefreshIndicator(
@@ -147,7 +148,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         );
       },
       child: Container(
-        color: isRead ? Colors.transparent : const Color(0xFF1B4F72).withOpacity(0.05),
+        color: isRead ? Colors.transparent : Colors.black.withOpacity(0.5),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +172,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: isRead ? FontWeight.w500 : FontWeight.bold,
-                            color: isRead ? Colors.grey[800] : Colors.black,
+                            color: isRead ? Colors.grey[800] : Colors.white,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:msloyalty/Helpers/dynamic_qr_redemtion.dart';
-import 'package:msloyalty/Screens/GiftCardDetailScreen.dart';
+import 'package:msloyalty/Screens/RewardDetailScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class GiftCardScreen extends StatefulWidget {
-  const GiftCardScreen({super.key});
+class RewardScreen extends StatefulWidget {
+  const RewardScreen({super.key});
 
   @override
-  State<GiftCardScreen> createState() => _GiftCardScreenState();
+  State<RewardScreen> createState() => _RewardScreenState();
 }
 
-class _GiftCardScreenState extends State<GiftCardScreen> {
+class _RewardScreenState extends State<RewardScreen> {
   // Supabase instance ကို ရယူခြင်း
   final supabase = Supabase.instance.client;
   bool isLoading = true;
@@ -25,10 +26,7 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   /// လက်ဆောင်ကတ်များကို database မှ ဆွဲယူခြင်း
   Future<void> _fetchGiftCards() async {
     try {
-      final data = await supabase
-          .from('gift_cards')
-          .select()
-          .eq('is_available', true);
+      final data = await supabase.from('gift_cards').select().eq('is_available', true);
 
       if (mounted) {
         setState(() {
@@ -72,11 +70,7 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
       Navigator.pop(context); // Dialog ပိတ်ရန်
 
       // အောင်မြင်ကြောင်း Alert ပြရန်
-      _showMessage(
-        "အောင်မြင်ပါသည်",
-        "လက်ဆောင်လဲလှယ်မှု ပြီးမြောက်သွားပါပြီ။",
-        Colors.green,
-      );
+      _showMessage("အောင်မြင်ပါသည်", "လက်ဆောင်လဲလှယ်မှု ပြီးမြောက်သွားပါပြီ။", Colors.green);
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context); // Loading ပိတ်ရန်
@@ -96,12 +90,7 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
       builder: (context) => AlertDialog(
         title: Text(title, style: TextStyle(color: color)),
         content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))],
       ),
     );
   }
@@ -109,13 +98,14 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black26,
       appBar: AppBar(
         title: const Text("လက်ဆောင်များ လဲလှယ်ရန်"),
-        backgroundColor: const Color(0xFF1B4F72),
+        backgroundColor: Colors.black26,
         foregroundColor: Colors.white,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: MoonSunLoading())
           : GridView.builder(
               padding: const EdgeInsets.all(15),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -137,14 +127,12 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
     return GestureDetector(
       onTap: () => Navigator.of(
         context,
-      ).push(MaterialPageRoute(builder: (context) => Giftcarddetailscreen())),
+      ).push(MaterialPageRoute(builder: (context) => RewardDetailPage(rewardId: item['id']))),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5),
-          ],
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,22 +141,13 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(15),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                   image: item['image_url'] != null
-                      ? DecorationImage(
-                          image: NetworkImage(item['image_url']),
-                          fit: BoxFit.cover,
-                        )
+                      ? DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover)
                       : null,
                 ),
                 child: item['image_url'] == null
-                    ? const Icon(
-                        Icons.card_giftcard,
-                        size: 50,
-                        color: Colors.grey,
-                      )
+                    ? const Icon(Icons.card_giftcard, size: 50, color: Colors.grey)
                     : null,
               ),
             ),
@@ -178,10 +157,11 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item['title'] ?? 'Gift Card',
+                    '${item['title']}' ?? 'Gift Card',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                      color: Colors.white,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -193,29 +173,26 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
                       const SizedBox(width: 5),
                       Text(
                         "${item['points_required']} Points",
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _redeemDialog(item),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1B4F72),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: EdgeInsets.zero,
-                      ),
-                      child: const Text("လဲလှယ်မည်"),
-                    ),
-                  ),
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   child: ElevatedButton(
+                  //     onPressed: () => _redeemDialog(item),
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: const Color(0xFF1B4F72),
+                  //       foregroundColor: Colors.white,
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(8),
+                  //       ),
+                  //       padding: EdgeInsets.zero,
+                  //     ),
+                  //     child: const Text("လဲလှယ်မည်"),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -237,24 +214,14 @@ class _GiftCardScreenState extends State<GiftCardScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "မလုပ်တော့ပါ",
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: const Text("မလုပ်တော့ပါ", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DynamicQRRedemption(item: item),
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B4F72),
-            ),
-            child: const Text(
-              "သေချာသည်",
-              style: TextStyle(color: Colors.white),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => DynamicQRRedemption(item: item))),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B4F72)),
+            child: const Text("သေချာသည်", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

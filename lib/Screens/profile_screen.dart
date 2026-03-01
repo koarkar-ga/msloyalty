@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:msloyalty/Constants/constant.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
+import 'package:msloyalty/Helpers/MoonSunLogoAnimation.dart';
 import 'package:msloyalty/Helpers/showSnackBar.dart';
 import 'package:msloyalty/Helpers/upload_photo.dart';
 import 'package:msloyalty/Screens/OtpRequestScreen.dart';
@@ -41,8 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final file = File(image.path);
       final fileExt = image.path.split('.').last;
-      final fileName =
-          '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
       final filePath = 'avatars/$fileName';
 
       // Supabase Storage သို့ Upload တင်ခြင်း
@@ -78,10 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print("Error: ${e.toString()}");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: ${e.toString()}"),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text("Error: ${e.toString()}"), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -102,37 +100,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: const Text(
-          "ကိုယ်ရေးအကျဉ်း",
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
+        title: const Text("ကိုယ်ရေးအကျဉ်း", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black87,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _getUserProfile(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !_isUploading) {
-            return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting && !_isUploading) {
+            return Center(child: MoonSunLoading());
           }
 
           final userData = snapshot.data;
-          final String fullName = userData?['full_name'] ?? "အမည်မရှိ";
+          print(userData);
+          final String fullName = userData?['full_name'] ?? "N/A";
           final String? avatarUrl = userData?['avatar_url'];
           final String phoneNumber = userData?['phone_number'] ?? "N/A";
           final String email = userData?['email'] ?? "N/A";
-          DateTime dob = DateTime.parse(userData!['dob']);
-          final String memberType =
-              userData?['member_types']?['name'] ?? "GOLD";
+          DateTime dob = userData!['dob'] == null
+              ? DateTime.now()
+              : DateTime.parse(userData!['dob']);
+          final String memberType = userData?['member_types']?['name'] ?? "GOLD";
 
           // 1. String ကို DateTime object အဖြစ်ပြောင်းခြင်း
-          DateTime birthDate = DateTime.parse(userData['dob']);
+          DateTime birthDate = userData!['dob'] == null
+              ? DateTime.now()
+              : DateTime.parse(userData!['dob']);
 
           // 2. လက်ရှိအချိန်နှင့် နှုတ်ခြင်း (Result is a Duration object)
           Duration difference = DateTime.now().difference(birthDate);
@@ -154,15 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       CircleAvatar(
                         radius: 55,
                         backgroundColor: const Color(0xFF1B4F72),
-                        backgroundImage: avatarUrl != null
-                            ? NetworkImage(avatarUrl)
-                            : null,
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
                         child: avatarUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 55,
-                                color: Colors.white,
-                              )
+                            ? const Icon(Icons.person, size: 55, color: Colors.white)
                             : null,
                       ),
                       if (_isUploading)
@@ -173,9 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
+                              child: CircularProgressIndicator(color: Colors.white),
                             ),
                           ),
                         ),
@@ -190,11 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Color(0xFF1B4F72),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                           ),
                         ),
                       ),
@@ -223,29 +206,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildInfoTile(
                   Icons.calendar_month_outlined,
                   "DOB",
-                  "${DateFormat("dd-MM-yyyy").format(dob).toString()}  -- ($years)" ??
-                      "N/A",
+                  years != 0
+                      ? "${DateFormat("dd-MM-yyyy").format(dob).toString()}  -- ($years)"
+                      : "N/A",
                   onEdit: () => _editData(
                     context,
                     "DOB",
                     "${DateFormat("dd-MM-yyyy").format(dob).toString()}",
                   ),
                 ),
-                _buildInfoTile(
-                  Icons.card_membership,
-                  "Member ID",
-                  userData?['member_id'] ?? "N/A",
-                ),
-                _buildInfoTile(
-                  Icons.workspace_premium,
-                  "Member Type",
-                  "$memberType MEMBER",
-                ),
-                _buildInfoTile(
-                  Icons.stars,
-                  "Points",
-                  "${userData?['total_points'] ?? 0} Points",
-                ),
+                _buildInfoTile(Icons.card_membership, "Member ID", userData?['member_id'] ?? "N/A"),
+                _buildInfoTile(Icons.workspace_premium, "Member Type", "$memberType MEMBER"),
+                _buildInfoTile(Icons.stars, "Points", "${userData?['total_points'] ?? 0} Points"),
                 const Divider(height: 40),
                 _buildLogoutButton(context),
               ],
@@ -272,22 +244,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Icon(icon, color: const Color(0xFF1B4F72)),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
-      ),
-      subtitle: Text(
-        value,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
+      title: Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      subtitle: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       // ညာဘက်အစွန်တွင် Edit Button ထည့်သွင်းခြင်း
       trailing: onEdit != null
           ? IconButton(
-              icon: const Icon(
-                Icons.edit_outlined,
-                color: Color(0xFF1B4F72),
-                size: 20,
-              ),
+              icon: const Icon(Icons.edit_outlined, color: Color(0xFF1B4F72), size: 20),
               onPressed: onEdit,
               tooltip: "ပြင်ဆင်ရန်",
               constraints: const BoxConstraints(), // Padding လျှော့ချရန်
@@ -306,15 +268,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ElevatedButton.icon(
           onPressed: () async {
             await Supabase.instance.client.auth.signOut();
-            final SharedPreferences prefs =
-                await SharedPreferences.getInstance();
+            final SharedPreferences prefs = await SharedPreferences.getInstance();
             if (context.mounted) {
               handleForceLogout(context, prefs);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             }
           },
           icon: const Icon(Icons.logout),
@@ -322,20 +279,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red.shade800,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ),
     );
   }
 
-  Future<void> checkPhoneNumber(
-    String phoneNumber,
-    bool isOtpSent,
-    int? lastRequestId,
-  ) async {
+  Future<void> checkPhoneNumber(String phoneNumber, bool isOtpSent, int? lastRequestId) async {
     try {
       // ဖုန်းနံပါတ် ရှိပြီးသားလား အရင်စစ်
       final existingUser = await supabase
@@ -345,11 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .maybeSingle();
 
       if (existingUser != null) {
-        showSnackBar(
-          context,
-          "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်",
-          isError: true,
-        );
+        showSnackBar(context, "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်", isError: true);
       } else {
         // SMSPoh Service ကို အသုံးပြုခြင်း
         final response = await SMSPohService.requestOTP(phoneNumber);
@@ -371,9 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _editData(BuildContext context, String title, String previousData) {
-    final TextEditingController _textController = TextEditingController(
-      text: '$previousData',
-    );
+    final TextEditingController _textController = TextEditingController(text: '$previousData');
 
     showDialog(
       context: context,
@@ -384,24 +329,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? buildDateField(context, _textController)
               : TextField(
                   controller: _textController,
-                  decoration: InputDecoration(
-                    labelText: title,
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: InputDecoration(labelText: title, border: OutlineInputBorder()),
                 ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancle"),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancle")),
             ElevatedButton(
               onPressed: title.toLowerCase() == "phone_number"
                   ? () {
-                      checkPhoneNumber(
-                        _textController.text.trim(),
-                        isOtpSent,
-                        lastOtpRequestId,
-                      );
+                      checkPhoneNumber(_textController.text.trim(), isOtpSent, lastOtpRequestId);
                       isOtpSent
                           ? Navigator.of(context).push(
                               MaterialPageRoute(
@@ -441,9 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                "Error updating name: ${e.toString()}",
-                              ),
+                              content: Text("Error updating name: ${e.toString()}"),
                               backgroundColor: Colors.red,
                             ),
                           );

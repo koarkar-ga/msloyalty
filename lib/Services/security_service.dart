@@ -34,7 +34,7 @@ Future<void> checkUserSession(BuildContext context) async {
 
       // ၃။ Database က ID နဲ့ လက်ရှိစက်ရဲ့ ID တူမှ ပေးဝင်မယ်
       if (dbDeviceId == currentDeviceId) {
-        navigateTo(context, '/home');
+        navigateTo(context, '/app');
       } else {
         // ID မတူရင် တခြားစက်မှာ ဝင်သွားပြီလို့ ယူဆပြီး အကုန်ရှင်းထုတ်မယ်
         await handleForceLogout(context, prefs);
