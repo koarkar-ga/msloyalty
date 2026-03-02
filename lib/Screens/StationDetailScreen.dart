@@ -12,10 +12,16 @@ class StationDetailScreen extends StatelessWidget {
     final String? imageUrl = station['image_url'];
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(station['name']),
-        backgroundColor: const Color(0xFF1B4F72),
+        title: Text(station['name'], style: TextStyle(fontSize: 16)),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -52,21 +58,22 @@ class StationDetailScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           station['name'],
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           station['region'] ?? "Unknown",
-                          style: const TextStyle(
-                            color: Color(0xFF1B4F72),
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -98,7 +105,7 @@ class StationDetailScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green[700],
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            padding: const EdgeInsets.symmetric(vertical: 4),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
@@ -112,7 +119,7 @@ class StationDetailScreen extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1B4F72),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            padding: const EdgeInsets.symmetric(vertical: 4),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
@@ -139,9 +146,9 @@ class StationDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
               const SizedBox(height: 3),
-              Text(value, style: const TextStyle(fontSize: 16, height: 1.4)),
+              Text(value, style: const TextStyle(fontSize: 16, height: 1.4, color: Colors.white)),
             ],
           ),
         ),

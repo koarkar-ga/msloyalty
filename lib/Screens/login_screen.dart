@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         _showSnackBar("Login အောင်မြင်ပါသည်");
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/app');
       }
     } catch (e) {
       _showSnackBar("ဖုန်းနံပါတ် သို့မဟုတ် Password မှားယွင်းနေပါသည်");
@@ -261,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
 
           _showSnackBar("Login အောင်မြင်ပါသည်");
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacementNamed(context, '/app');
         }
       } else {
         // အကောင့်မရှိသေးလျှင် Signup Page သို့ ဖုန်းနံပါတ်ပါးပြီး လွှတ်လိုက်မယ်

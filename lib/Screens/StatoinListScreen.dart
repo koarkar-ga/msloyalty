@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Helpers/MoonSunLoading.dart';
-import 'package:msloyalty/Screens/station_detail_screen.dart';
+import 'package:msloyalty/Screens/StationDetailScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -61,10 +61,16 @@ class _StationListScreenState extends State<StationListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text("ဆိုင်များ ရှာဖွေရန်"),
-        backgroundColor: const Color(0xFF1B4F72),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
@@ -75,7 +81,8 @@ class _StationListScreenState extends State<StationListScreen> {
               onChanged: _filterStations,
               decoration: InputDecoration(
                 hintText: "ဆိုင်အမည် သို့မဟုတ် မြို့နယ်ဖြင့်ရှာပါ",
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: const TextStyle(color: Colors.white, fontSize: 12),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
@@ -103,9 +110,10 @@ class _StationListScreenState extends State<StationListScreen> {
                           );
                         },
                         child: Card(
+                          color: Colors.grey[850],
                           elevation: 3,
                           margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(12),
 
@@ -113,23 +121,17 @@ class _StationListScreenState extends State<StationListScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  station['name'],
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                                Text(station['name'], style: const TextStyle(color: Colors.white)),
                                 if (station['region'] != null)
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue[100],
+                                      color: Colors.black54,
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Text(
                                       station['region'],
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Color(0xFF1B4F72),
-                                      ),
+                                      style: const TextStyle(fontSize: 10, color: Colors.white),
                                     ),
                                   ),
                               ],
@@ -137,28 +139,31 @@ class _StationListScreenState extends State<StationListScreen> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(station['address']),
+                                Text(
+                                  station['address'],
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                                 const SizedBox(height: 5),
                                 Text(
                                   "ဖုန်း: ${station['phone'] ?? '-'}",
-                                  style: const TextStyle(color: Colors.blueGrey),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ],
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.phone, color: Colors.green),
-                                  onPressed: () => _launchURL("tel:${station['phone']}"),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.directions, color: Colors.blue),
-                                  onPressed: () =>
-                                      _launchURL(station['map_url'] ?? "https://maps.google.com"),
-                                ),
-                              ],
-                            ),
+                            // trailing: Row(
+                            //   mainAxisSize: MainAxisSize.min,
+                            //   children: [
+                            //     IconButton(
+                            //       icon: const Icon(Icons.phone, color: Colors.green),
+                            //       onPressed: () => _launchURL("tel:${station['phone']}"),
+                            //     ),
+                            //     IconButton(
+                            //       icon: const Icon(Icons.directions, color: Colors.blue),
+                            //       onPressed: () =>
+                            //           _launchURL(station['map_url'] ?? "https://maps.google.com"),
+                            //     ),
+                            //   ],
+                            // ),
                           ),
                         ),
                       );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Constants/constant.dart';
+import 'package:msloyalty/Helpers/MoonSunLoading.dart';
 import 'package:msloyalty/Helpers/custom_fab_home.dart';
 import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
 import 'package:msloyalty/Helpers/promo_banner_slider.dart';
@@ -9,7 +10,7 @@ import 'package:msloyalty/Screens/fule_price_screen.dart';
 import 'package:msloyalty/Screens/RewardScreen.dart';
 import 'package:msloyalty/Screens/history_screen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
-import 'package:msloyalty/Screens/station_list_screen.dart';
+import 'package:msloyalty/Screens/StatoinListScreen.dart';
 import 'package:msloyalty/Services/noti_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -54,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final baseColor = _getColorFromHex(typeData?['color_hex']);
 
     return {
-      'gradient': [baseColor, baseColor.withOpacity(0.7)],
+      'gradient': [baseColor, baseColor.withOpacity(0.7), baseColor.withOpacity(0.9)],
       'accent': Colors.white,
       'label': "$name MEMBER",
       'tagBg': Colors.white.withOpacity(0.2),
@@ -70,11 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final data = await Supabase.instance.client
           .from('profiles')
-          .select('avatar_url, member_types!inner(name, min_points, color_hex)')
+          .select('full_name, avatar_url, member_types!inner(name, min_points, color_hex)')
           .eq('id', user.id)
           .maybeSingle();
 
-      return {'avatar_url': data?['avatar_url'], 'member_info': data?['member_types']};
+      return {
+        'full_name': data?['full_name'],
+        'avatar_url': data?['avatar_url'],
+        'member_info': data?['member_types'],
+      };
     } catch (e) {
       debugPrint("Fetch Error: $e");
       return {'member_info': null, 'avatar_url': null};
@@ -86,6 +91,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return FutureBuilder<Map<String, dynamic>>(
       future: _getUserFullData(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: MoonSunLoading());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
         final design = _getMemberDesign(snapshot.data?['member_info']);
         final avatarUrl = snapshot.data?['avatar_url'];
 
@@ -94,7 +105,38 @@ class _HomeScreenState extends State<HomeScreen> {
           appBar: AppBar(
             backgroundColor: Colors.black12,
             elevation: 0,
-            title: Image.asset("assets/images/moonsun_logo.png", height: 40),
+            title: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Hi! Welcome Back", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  SizedBox(height: 4),
+                  Text(
+                    "${snapshot.data!['full_name']}",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // title: SizedBox(
+            //   height: 50,
+            //   width: 300,
+            //   child: Row(
+            //     children: [
+            //       // Image.asset("assets/images/moonsun_logo.png"),
+            //       const SizedBox(width: 8),
+            //       Text(
+            //         snapshot.data?['full_name'] ?? 'User',
+            //         style: TextStyle(color: Colors.white),
+            //       ),
+            //     ],
+            //   ),
+            // ), //Image.asset("assets/images/moonsun_logo.png", height: 40),
             actions: [
               StreamBuilder(
                 stream: notificationStream,
@@ -104,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Stack(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.notifications_none, color: Colors.black),
+                        icon: const Icon(Icons.notifications_none, color: Colors.white),
                         onPressed: () {
                           Navigator.of(context).pushNamed('/notification');
                         },
@@ -160,18 +202,19 @@ class _HomeScreenState extends State<HomeScreen> {
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Dynamic Member Card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: design['gradient'] as List<Color>,
                         ),
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
                             color: (design['gradient'][0] as Color).withOpacity(0.3),
@@ -180,80 +223,122 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //MOONSUN LOGO
+                          Positioned(
+                            left: -32,
+                            top: -20,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 1.0, end: 0.5),
+                              duration: const Duration(milliseconds: 1000),
+                              curve: Curves.easeOut,
+                              builder: (context, scale, child) {
+                                // SizedBox fixes the layout size so surrounding layout doesn't change
+                                return Transform.scale(
+                                  scale: scale,
+                                  alignment: Alignment.center,
+                                  child: child,
+                                );
+                              },
+                              child: MoonSunLoading(isLoading: false),
+                            ),
+                          ),
+
+                          Positioned(
+                            left: 70,
+                            top: 20,
+                            child: const Text(
+                              "MOONSUN ENERGY",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
-                                    "MOONSUN ENERGY",
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 10,
-                                      letterSpacing: 2,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 80),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: design['tagBg'] as Color,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          design['label'] as String,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.qr_code_2,
+                                      color: Colors.white,
+                                      size: 64,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: design['tagBg'] as Color,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      design['label'] as String,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
+                                    onPressed: () => Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => DynamicQRRewardScreen(),
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.qr_code_2, color: Colors.white, size: 32),
-                                onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => DynamicQRRewardScreen()),
+                              const SizedBox(height: 10),
+                              const Text(
+                                "AVAILABLE POINTS",
+                                style: TextStyle(color: Colors.white60, fontSize: 12),
+                              ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: provider.points?.toDouble() ?? 0.0),
+                                duration: const Duration(milliseconds: 800),
+                                curve: Curves.easeOut,
+                                builder: (context, value, child) {
+                                  return Text(
+                                    '${value.round()}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Silkscreen',
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              // Dynamic Progress Bar
+                              const Text(
+                                "သင့်အဆင့်ကို ထိန်းသိမ်းရန် သို့မဟုတ် မြှင့်တင်ရန် ဆီဖြည့်ပါ",
+                                style: TextStyle(color: Colors.white54, fontSize: 10),
+                              ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: LinearProgressIndicator(
+                                  value: 0.5, // ဤနေရာတွင် Point အလိုက် တွက်ချက်နိုင်သည်
+                                  backgroundColor: Colors.white.withOpacity(0.1),
+                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                                  minHeight: 3,
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 40),
-                          const Text(
-                            "AVAILABLE POINTS",
-                            style: TextStyle(color: Colors.white60, fontSize: 12),
-                          ),
-                          Text(
-                            "${provider.points}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 44,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          // Dynamic Progress Bar
-                          const Text(
-                            "သင့်အဆင့်ကို ထိန်းသိမ်းရန် သို့မဟုတ် မြှင့်တင်ရန် ဆီဖြည့်ပါ",
-                            style: TextStyle(color: Colors.white54, fontSize: 10),
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: 0.5, // ဤနေရာတွင် Point အလိုက် တွက်ချက်နိုင်သည်
-                              backgroundColor: Colors.white.withOpacity(0.1),
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                              minHeight: 6,
-                            ),
                           ),
                         ],
                       ),

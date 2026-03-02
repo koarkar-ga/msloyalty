@@ -53,12 +53,8 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
         // ၂။ ပုံတင်ခြင်း
         if (widget.imageFile != null) {
           final String filePath = 'public/profile_${widget.phone}.jpg';
-          await supabase.storage
-              .from('moonsun_assets')
-              .upload(filePath, widget.imageFile!);
-          imageUrl = supabase.storage
-              .from('moonsun_assets')
-              .getPublicUrl(filePath);
+          await supabase.storage.from('moonsun_assets').upload(filePath, widget.imageFile!);
+          imageUrl = supabase.storage.from('moonsun_assets').getPublicUrl(filePath);
         }
 
         // ၃။ Profile Table သိမ်းခြင်း
@@ -73,7 +69,7 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
           'total_points': 500,
         });
 
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       }
     } catch (e) {
       Uihelper.showSnackBar(context, e.toString());

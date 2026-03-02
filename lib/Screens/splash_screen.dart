@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Brand Color
+      backgroundColor: Colors.black, // Brand Color
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
