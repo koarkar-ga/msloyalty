@@ -101,6 +101,10 @@ class _RewardScreenState extends State<RewardScreen> {
       backgroundColor: Colors.black26,
       appBar: AppBar(
         title: const Text("လက်ဆောင်များ လဲလှယ်ရန်"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         backgroundColor: Colors.black26,
         foregroundColor: Colors.white,
       ),
@@ -132,7 +136,7 @@ class _RewardScreenState extends State<RewardScreen> {
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(4),
-          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 5)],
+          boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.2), blurRadius: 2)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +144,7 @@ class _RewardScreenState extends State<RewardScreen> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Colors.black,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                   image: item['image_url'] != null
                       ? DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover)

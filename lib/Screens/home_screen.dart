@@ -8,7 +8,7 @@ import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
 import 'package:msloyalty/Screens/fule_price_screen.dart';
 import 'package:msloyalty/Screens/RewardScreen.dart';
-import 'package:msloyalty/Screens/history_screen.dart';
+import 'package:msloyalty/Screens/HistoryScreen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
 import 'package:msloyalty/Screens/StatoinListScreen.dart';
 import 'package:msloyalty/Services/noti_service.dart';

@@ -37,6 +37,14 @@ class _RewardDetailPageState extends State<RewardDetailPage> {
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 18),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.control_point, color: Colors.white),
+            onPressed: () {
+              // Share functionality
+            },
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: getRewardDetail(),
@@ -67,6 +75,27 @@ class _RewardDetailPageState extends State<RewardDetailPage> {
                             Icons.local_gas_station,
                             size: 150,
                             color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                        Positioned(
+                          left: 20,
+                          bottom: 0,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                              image: reward!['image_url'] != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(reward!['image_url']),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: reward['image_url'] == null
+                                ? const Icon(Icons.card_giftcard, size: 50, color: Colors.grey)
+                                : null,
                           ),
                         ),
                         Padding(
@@ -119,7 +148,89 @@ class _RewardDetailPageState extends State<RewardDetailPage> {
                 ),
                 const SizedBox(height: 16),
 
+                // Redemption section
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade900,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade800),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Redeem Reward',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${reward!['title']}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Claim', style: TextStyle(fontSize: 16)),
+                              onPressed: () async {
+                                // show loading
+                                // showDialog(
+                                //   context: context,
+                                //   barrierDismissible: false,
+                                //   builder: (_) => const Center(child: CircularProgressIndicator()),
+                                // );
+
+                                try {
+                                  final userId = supabase.auth.currentUser?.id;
+                                  await supabase.from('redemption_history').insert({
+                                    'reward_id': widget.rewardId,
+                                    'user_id': userId,
+                                    'points_spent': snapShot.data!['points_required'],
+                                    'cpid': DateTime.now().millisecondsSinceEpoch,
+                                    'created_at': DateTime.now().toIso8601String(),
+                                  });
+
+                                  Navigator.of(context).pop(); // close loading
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Redemption requested. We will notify you when ready.',
+                                      ),
+                                    ),
+                                  );
+                                  // optionally refresh UI or navigate
+                                  setState(() {});
+                                } catch (e) {
+                                  Navigator.of(context).pop(); // close loading
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(SnackBar(content: Text('Failed to redeem: $e')));
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
                 // Contact Bar
+                const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
