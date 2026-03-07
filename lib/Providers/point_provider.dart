@@ -32,7 +32,11 @@ class PointProvider with ChangeNotifier {
     await supabase.from('profiles').update({'total_points': newTotal}).eq('id', userId);
 
     // 2. Point History ထဲမှာ မှတ်တမ်းသွင်းမယ်
-    await supabase.from('point_history').insert({'user_id': userId, 'amount_spent': spent, 'points_earned': earnedPoints});
+    await supabase.from('point_history').insert({
+      'user_id': userId,
+      'amount_spent': spent,
+      'points_earned': earnedPoints,
+    });
 
     _points = newTotal;
     notifyListeners();

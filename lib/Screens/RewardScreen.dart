@@ -101,10 +101,12 @@ class _RewardScreenState extends State<RewardScreen> {
       backgroundColor: Colors.black26,
       appBar: AppBar(
         title: const Text("လက်ဆောင်များ လဲလှယ်ရန်"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         backgroundColor: Colors.black26,
         foregroundColor: Colors.white,
       ),

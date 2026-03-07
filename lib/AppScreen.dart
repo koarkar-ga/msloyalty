@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:msloyalty/Screens/FiFoPointScreen.dart';
 import 'package:msloyalty/Screens/RewardScreen.dart';
 import 'package:msloyalty/Screens/home_screen.dart';
 import 'package:msloyalty/Screens/notification_screen.dart';
@@ -40,6 +41,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const RewardScreen(),
+    const FifoPointsPage(),
     const NotificationScreen(),
     const ProfileScreen(),
   ];
@@ -69,6 +71,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
             BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: "Reward"),
+            BottomNavigationBarItem(icon: Icon(Icons.data_array), label: "Points"),
             BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: "Notification"),
             BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
           ],

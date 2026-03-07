@@ -6,6 +6,7 @@ import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
 import 'package:msloyalty/Helpers/promo_banner_slider.dart';
 import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
+import 'package:msloyalty/Screens/FiFoPointHistory.dart';
 import 'package:msloyalty/Screens/fule_price_screen.dart';
 import 'package:msloyalty/Screens/RewardScreen.dart';
 import 'package:msloyalty/Screens/HistoryScreen.dart';
@@ -356,12 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           "ဆိုင်ရှာရန်",
                           const StationListScreen(),
                         ),
-                        _buildAction(
-                          context,
-                          Icons.card_giftcard,
-                          "ဆုလက်ဆောင်",
-                          const RewardScreen(),
-                        ),
+                        _buildAction(context, Icons.card_giftcard, "မှတ်တမ်း", FifoPointsScreen()),
                         _buildAction(context, Icons.history, "မှတ်တမ်း", const HistoryScreen()),
                         _buildAction(
                           context,
