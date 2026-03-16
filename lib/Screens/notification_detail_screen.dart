@@ -22,33 +22,48 @@ class NotificationDetailScreen extends StatefulWidget {
   const NotificationDetailScreen({super.key, required this.notification});
 
   @override
-  State<NotificationDetailScreen> createState() => _NotificationDetailScreenState();
+  State<NotificationDetailScreen> createState() =>
+      _NotificationDetailScreenState();
 }
 
 class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
   @override
   Widget build(BuildContext context) {
-    // စမ်းသပ်ရန် Data (Mock Data)
     final notification = widget.notification;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor =
+        Theme.of(context).cardTheme.color ??
+        (isDark ? const Color(0xFF1E1E1E) : Colors.white);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: isDark ? Colors.white : Colors.black,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "အသေးစိတ်",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement single delete logic if needed
+            },
           ),
         ],
       ),
@@ -56,103 +71,88 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // အပေါ်ပိုင်း Visual Header
-            _buildHeaderVisual(notification.type),
+            // Header visual adapts slightly to dark mode
+            _buildHeaderVisual(notification.type, isDark),
 
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Type Tag and Time
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildTypeTag(notification.type),
+                      _buildTypeTag(notification.type, isDark),
                       Text(
                         notification.createdAt,
-                        style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                        style: TextStyle(
+                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Notification Title
                   Text(
                     notification.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       height: 1.3,
-                      color: Color(0xFF1A1A1A),
+                      color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  const Divider(height: 32, thickness: 1),
+                  Divider(
+                    height: 32,
+                    thickness: 1,
+                    color: isDark ? Colors.white10 : Colors.grey[200],
+                  ),
 
-                  // Message Body
                   Text(
                     notification.message,
-                    style: TextStyle(fontSize: 16, height: 1.6, color: Colors.grey[700]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.6,
+                      color: isDark ? Colors.white70 : Colors.grey[800],
+                    ),
                   ),
                   const SizedBox(height: 32),
 
-                  // Sender Card
-                  _buildSenderCard(notification),
+                  _buildSenderCard(notification, isDark, cardColor),
                 ],
               ),
             ),
           ],
         ),
       ),
-      // Action Button
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A1A),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-            ),
-            child: const Text(
-              "လုပ်ဆောင်ချက် ကြည့်ရန်",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
   // Notification Type အလိုက် Icon နှင့် အရောင်ပြောင်းရန်
-  Widget _buildHeaderVisual(String type) {
+  Widget _buildHeaderVisual(String type, bool isDark) {
     Color bgColor;
     IconData icon;
     Color iconColor;
 
     switch (type) {
       case 'earn point':
-        bgColor = Colors.white.withOpacity(0.8);
+        bgColor = isDark
+            ? Colors.orange.withOpacity(0.05)
+            : Colors.orange.shade50;
         icon = Icons.redeem;
         iconColor = Colors.orange.shade700;
         break;
       case 'reward point':
-        bgColor = Colors.red.shade50;
-        icon = Icons.warning_amber_rounded;
-        iconColor = Colors.red.shade700;
-        break;
       case 'announce':
-        bgColor = Colors.red.shade50;
+        bgColor = isDark ? Colors.red.withOpacity(0.05) : Colors.red.shade50;
         icon = Icons.warning_amber_rounded;
         iconColor = Colors.red.shade700;
         break;
       default:
-        bgColor = Colors.blue.shade50;
+        bgColor = isDark ? Colors.blue.withOpacity(0.05) : Colors.blue.shade50;
         icon = Icons.info_outline_rounded;
         iconColor = Colors.blue.shade700;
     }
@@ -164,10 +164,16 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF252525) : Colors.white,
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(
+                color: isDark ? Colors.black26 : Colors.black12,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Icon(icon, size: 32, color: iconColor),
         ),
@@ -175,18 +181,20 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
     );
   }
 
-  // Type Tag လေးများ
-  Widget _buildTypeTag(String type) {
+  Widget _buildTypeTag(String type, bool isDark) {
+    bool isPromotion = type == 'promotion' || type == 'earn point';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: type == 'promotion' ? Colors.orange.shade50 : Colors.blue.shade50,
+        color: isPromotion
+            ? (isDark ? Colors.orange.withOpacity(0.15) : Colors.orange.shade50)
+            : (isDark ? Colors.blue.withOpacity(0.15) : Colors.blue.shade50),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         type.toUpperCase(),
         style: TextStyle(
-          color: type == 'promotion' ? Colors.orange.shade700 : Colors.blue.shade700,
+          color: isPromotion ? Colors.orange.shade400 : Colors.blue.shade400,
           fontSize: 11,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.1,
@@ -195,29 +203,49 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
     );
   }
 
-  // Sender Profile Card
-  Widget _buildSenderCard(AppNotification notification) {
+  Widget _buildSenderCard(
+    AppNotification notification,
+    bool isDark,
+    Color cardColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: isDark ? Colors.white.withOpacity(0.03) : Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+        ),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Colors.white,
-            child: Icon(Icons.person_outline, color: Colors.grey[600]),
+            backgroundColor: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.white,
+            child: Icon(
+              Icons.person_outline,
+              color: isDark ? Colors.white70 : Colors.grey[600],
+            ),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("ပို့ဆောင်သူ", style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+              Text(
+                "ပို့ဆောင်သူ",
+                style: TextStyle(
+                  color: isDark ? Colors.white54 : Colors.grey[500],
+                  fontSize: 12,
+                ),
+              ),
               Text(
                 notification.sender,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
             ],
           ),

@@ -13,9 +13,15 @@ class PointsService {
       final response = await supabase
           .from('v_user_points_fifo')
           .select()
-          .order('expires_at', ascending: true); // သက်တမ်းကုန်ခါနီးကို အပေါ်တင်သည်
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .order(
+            'expires_at',
+            ascending: true,
+          ); // သက်တမ်းကုန်ခါနီးကို အပေါ်တင်သည်
 
-      return (response as List).map((data) => PointLedgerBatch.fromMap(data)).toList();
+      return (response as List)
+          .map((data) => PointLedgerBatch.fromMap(data))
+          .toList();
     } catch (e) {
       throw Exception('Points အချက်အလက်များ ဖတ်၍မရပါ: $e');
     }
@@ -56,8 +62,12 @@ class PointLedgerBatch {
       earnedPoints: map['earned_points'] ?? 0,
       remainingPoints: map['remaining_points'] ?? 0,
       usedPoints: map['used_points'] ?? 0,
-      expiresAt: DateTime.parse(map['expires_at'] ?? DateTime.now().toIso8601String()),
-      earnedAt: DateTime.parse(map['earned_at'] ?? DateTime.now().toIso8601String()),
+      expiresAt: DateTime.parse(
+        map['expires_at'] ?? DateTime.now().toIso8601String(),
+      ),
+      earnedAt: DateTime.parse(
+        map['earned_at'] ?? DateTime.now().toIso8601String(),
+      ),
       daysUntilExpiry: map['days_until_expiry'] ?? 0,
       status: map['status'] ?? 'ACTIVE',
     );
@@ -90,20 +100,27 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'FIFO Points Tracker',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor:
+            theme.appBarTheme.backgroundColor ?? colorScheme.surface,
         elevation: 0,
+        iconTheme: theme.iconTheme,
         actions: [
           IconButton(
             onPressed: _loadData,
-            icon: const Icon(Icons.refresh, color: Colors.blue),
+            icon: Icon(Icons.refresh, color: colorScheme.primary),
           ),
         ],
       ),
@@ -122,7 +139,10 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(snapshot.error.toString()),
-                  ElevatedButton(onPressed: _loadData, child: const Text('ထပ်မံကြိုးစားမည်')),
+                  ElevatedButton(
+                    onPressed: _loadData,
+                    child: const Text('ထပ်မံကြိုးစားမည်'),
+                  ),
                 ],
               ),
             );
@@ -151,12 +171,17 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
   }
 
   Widget _buildHeaderCard(List<PointLedgerBatch> batches) {
-    int totalRemaining = batches.fold(0, (sum, item) => sum + item.remainingPoints);
+    int totalRemaining = batches.fold(
+      0,
+      (sum, item) => sum + item.remainingPoints,
+    );
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2196F3), Color(0xFF1976D2)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+        ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -176,13 +201,21 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
           const SizedBox(height: 4),
           Text(
             NumberFormat('#,###').format(totalRemaining),
-            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           const Divider(color: Colors.white24),
           const Text(
             'FIFO စနစ်ဖြင့် သက်တမ်းကုန်ခါနီးများကို အရင်နှုတ်ပါမည်။',
-            style: TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -190,19 +223,33 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
   }
 
   Widget _buildBatchCard(PointLedgerBatch batch) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final bool isExpiringSoon = batch.status == 'EXPIRING_SOON';
-    final Color statusColor = isExpiringSoon ? Colors.orange : Colors.green;
+    final Color statusColor = isExpiringSoon
+        ? Colors.orange
+        : colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: theme.brightness == Brightness.dark ? 2 : 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            title: Text(batch.stationName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            title: Text(
+              batch.stationName,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             subtitle: Text(
               '${batch.fuelType} | ရရှိရက်: ${DateFormat('dd-MM-yyyy').format(batch.earnedAt)}',
+              style: theme.textTheme.bodySmall,
             ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -210,9 +257,18 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
               children: [
                 Text(
                   '${batch.remainingPoints}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: statusColor),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
                 ),
-                const Text('Points ကျန်', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                Text(
+                  'Points ကျန်',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -222,7 +278,7 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
                 value: batch.remainingPoints / batch.earnedPoints,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                 minHeight: 4,
               ),
@@ -238,21 +294,25 @@ class _FifoPointsScreenState extends State<FifoPointsScreen> {
                     Icon(
                       Icons.timer_outlined,
                       size: 16,
-                      color: isExpiringSoon ? Colors.orange : Colors.grey,
+                      color: isExpiringSoon ? Colors.orange : theme.hintColor,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'သက်တမ်းကုန်ရန်: ${batch.daysUntilExpiry} ရက်',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isExpiringSoon ? Colors.orange[800] : Colors.grey[700],
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: isExpiringSoon
+                            ? Colors.orange[800]
+                            : theme.hintColor,
                       ),
                     ),
                   ],
                 ),
                 Text(
                   'Expired: ${DateFormat('dd MMM yyyy').format(batch.expiresAt)}',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    color: theme.hintColor,
+                  ),
                 ),
               ],
             ),

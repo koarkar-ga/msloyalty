@@ -1,41 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Helpers/MoonSunLoading.dart';
+import 'package:msloyalty/Helpers/app_localizations.dart';
+import 'package:msloyalty/Providers/settings_provider.dart';
 import 'package:msloyalty/Screens/FuelTransactionDetailScreen.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart'; // ရက်စွဲပုံစံပြင်ရန်
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: Colors.black12,
-        appBar: AppBar(
-          title: const Text("မှတ်တမ်းများ"),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-            onPressed: () => Navigator.pop(context),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) {
+        final locale = settings.locale;
+        final fgColor = Theme.of(context).appBarTheme.foregroundColor;
+
+        return DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              title: Text(
+                'history_title'.tr(locale),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+              foregroundColor: fgColor,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: fgColor, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+              bottom: TabBar(
+                labelColor: fgColor,
+                unselectedLabelColor: fgColor?.withValues(alpha: 0.6),
+                indicatorColor: const Color(0xFF1B4F72),
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: const TextStyle(fontSize: 13),
+                tabs: [
+                  Tab(text: 'tab_fuel'.tr(locale)),
+                  Tab(text: 'tab_redeem'.tr(locale)),
+                ],
+              ),
+            ),
+            body: const TabBarView(
+              children: [FuelHistoryTab(), RedeemHistoryTab()],
+            ),
           ),
-          bottom: const TabBar(
-            // စာသားအရောင်ကို အဖြူရောင်သတ်မှတ်ခြင်း
-            labelColor: Colors.white,
-            unselectedLabelColor:
-                Colors.white70, // မရွေးချယ်ထားသော Tab ကို အဖြူရောင် မှိန်မှိန်လေးပြရန်
-            indicatorColor: Colors.white, // အောက်ခြေလိုင်းကို အဖြူရောင်ထားရန်
-            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            tabs: [
-              Tab(text: "ဆီဖြည့်မှတ်တမ်း"),
-              Tab(text: "လက်ဆောင်လဲလှယ်မှု"),
-            ],
-          ),
-        ),
-        body: const TabBarView(children: [FuelHistoryTab(), RedeemHistoryTab()]),
-      ),
+        );
+      },
     );
   }
 }
@@ -47,51 +68,107 @@ class FuelHistoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subColor = Theme.of(context).textTheme.bodyMedium?.color;
 
     return StreamBuilder(
       stream: supabase
-          .from('fuel_transactions')
+          .from('v_fuel_transactions_with_stations')
           .stream(primaryKey: ['id'])
           .eq('user_id', supabase.auth.currentUser!.id)
           .order('created_at', ascending: false)
-          .limit(10),
+          .limit(30),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Center(child: MoonSunLoading());
         final data = snapshot.data!;
 
-        return ListView.builder(
+        if (data.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.local_gas_station_outlined,
+                  size: 56,
+                  color: subColor,
+                ),
+                const SizedBox(height: 12),
+                Text('No fuel history yet', style: TextStyle(color: subColor)),
+              ],
+            ),
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           itemCount: data.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 6),
           itemBuilder: (context, index) {
             final tx = data[index];
+            // null-safe field access
+            final stationName = tx['station_name']?.toString() ?? '-';
+            final fuelType = tx['fuel_type']?.toString() ?? '-';
+            final amountMmk = tx['amount_mmk']?.toString() ?? '0';
+            final pointsEarned = tx['points_earned']?.toString() ?? '0';
+            final createdAt = tx['created_at'] != null
+                ? DateFormat(
+                    'dd MMM yyyy',
+                  ).format(DateTime.parse(tx['created_at']))
+                : '-';
+
             return InkWell(
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => FuelTransactionDetailScreen(data: tx)),
+                MaterialPageRoute(
+                  builder: (context) => FuelTransactionDetailScreen(data: tx),
+                ),
               ),
+              borderRadius: BorderRadius.circular(12),
               child: Card(
                 clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: EdgeInsets.zero,
                 child: ListTile(
-                  leading: const Icon(Icons.local_gas_station, color: Colors.blue),
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.withValues(alpha: 0.1),
+                    child: const Icon(
+                      Icons.local_gas_station,
+                      color: Colors.blue,
+                      size: 20,
+                    ),
+                  ),
                   title: Text(
-                    tx['station_name'],
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    stationName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                      fontSize: 14,
+                    ),
                   ),
                   subtitle: Text(
-                    "${tx['fuel_type']} | ${DateFormat('dd MMM yyyy').format(DateTime.parse(tx['created_at']))}",
+                    '$fuelType · $createdAt',
+                    style: TextStyle(color: subColor, fontSize: 12),
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        "${tx['amount_mmk']} Ks",
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        '$amountMmk Ks',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                          fontSize: 13,
+                        ),
                       ),
                       Text(
-                        "+${tx['points_earned']} Pts",
-                        style: const TextStyle(color: Colors.green, fontSize: 12),
+                        '+$pointsEarned pts',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -112,56 +189,88 @@ class RedeemHistoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subColor = Theme.of(context).textTheme.bodyMedium?.color;
 
     return StreamBuilder(
       stream: supabase
           .from('redemption_history')
           .stream(primaryKey: ['id'])
           .eq('user_id', supabase.auth.currentUser!.id)
-          .order('created_at'),
+          .order('created_at', ascending: false),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return Center(child: MoonSunLoading());
         final data = snapshot.data!;
 
-        return ListView.builder(
+        if (data.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.card_giftcard_outlined, size: 56, color: subColor),
+                const SizedBox(height: 12),
+                Text('No redemptions yet', style: TextStyle(color: subColor)),
+              ],
+            ),
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           itemCount: data.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 6),
           itemBuilder: (context, index) {
             final rd = data[index];
-            final rewardQuery = supabase
-                .from('gift_cards')
-                .select('title')
-                .eq('id', rd['reward_id'])
-                .single();
-            return FutureBuilder(
-              future: rewardQuery,
-              builder: (context, snapshot2) {
-                String titleText = 'Reward';
-                if (snapshot2.hasData) {
-                  final res = snapshot2.data;
-                  if (res is Map && res!['title'] != null) {
-                    titleText = res['title'].toString();
-                  } else if (res is Map &&
-                      res!.containsKey('data') &&
-                      res['data'] is Map &&
-                      res['data']['title'] != null) {
-                    // handle wrappers that place result under 'data'
-                    titleText = res['data']['title'].toString();
-                  } else {
-                    titleText = snapshot2.data.toString();
-                  }
-                } else if (snapshot2.hasError) {
-                  titleText = 'Unknown';
-                }
-                return ListTile(
-                  leading: const Icon(Icons.card_giftcard, color: Colors.white),
-                  title: Text(titleText, style: TextStyle(color: Colors.white)),
-                  subtitle: Text(
-                    DateFormat('dd MMM yyyy').format(DateTime.parse(rd['created_at'])),
-                    style: TextStyle(color: Colors.white),
+            final pointsSpent = rd['points_spent']?.toString() ?? '0';
+            final createdAt = rd['created_at'] != null
+                ? DateFormat(
+                    'dd MMM yyyy',
+                  ).format(DateTime.parse(rd['created_at']))
+                : '-';
+
+            return FutureBuilder<Map<String, dynamic>>(
+              future: supabase
+                  .from('gift_cards')
+                  .select('title')
+                  .eq('id', rd['reward_id'])
+                  .single(),
+              builder: (context, snap) {
+                final title = snap.data?['title']?.toString() ?? 'Reward';
+
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  trailing: Text(
-                    "-${rd['points_spent']} Pts",
-                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                      child: const Icon(
+                        Icons.card_giftcard,
+                        color: Colors.orange,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      createdAt,
+                      style: TextStyle(color: subColor, fontSize: 12),
+                    ),
+                    trailing: Text(
+                      '-$pointsSpent pts',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 );
               },

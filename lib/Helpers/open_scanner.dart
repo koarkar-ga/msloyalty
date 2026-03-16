@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Providers/point_provider.dart';
 import 'package:msloyalty/Screens/qr_scanner_screen.dart';
+import 'package:msloyalty/Screens/receipt_voucher_screen.dart';
 import 'package:provider/provider.dart';
 
 class OpenScanner {
@@ -23,45 +24,24 @@ class OpenScanner {
       final provider = Provider.of<PointProvider>(context, listen: false);
 
       try {
-        await provider.addPoints(earnedPoints, spentAmount);
+        final txnData = await provider.addPoints(earnedPoints, spentAmount, qrCode: qrData);
 
-        // ၄။ အောင်မြင်ကြောင်း UI ပြမယ်
-        _showSuccessDialog(context, earnedPoints);
+        if (txnData != null && context.mounted) {
+          // ၄။ Receipt Voucher သို့ တိုက်ရိုက်သွားမည်
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ReceiptVoucherScreen(data: txnData),
+            ),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("အမှားအယွင်းရှိပါသည်: $e")));
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("အမှားအယွင်းရှိပါသည်: $e")));
+        }
       }
     }
-  }
-
-  void _showSuccessDialog(BuildContext context, int points) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 80),
-            SizedBox(height: 20),
-            Text(
-              "ဂုဏ်ယူပါသည်!",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text("သင် Point $points ရရှိပြီးပါပြီ။"),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF1B4F72),
-              ),
-              onPressed: () => Navigator.pop(context),
-              child: Text("ပိတ်ရန်", style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

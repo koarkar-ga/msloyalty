@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Helpers/MoonSunLoading.dart';
-import 'package:msloyalty/Helpers/dynamic_qr_redemtion.dart';
 import 'package:msloyalty/Screens/RewardDetailScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,10 +11,10 @@ class RewardScreen extends StatefulWidget {
 }
 
 class _RewardScreenState extends State<RewardScreen> {
-  // Supabase instance ကို ရယူခြင်း
   final supabase = Supabase.instance.client;
   bool isLoading = true;
   List<dynamic> giftCards = [];
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -23,11 +22,12 @@ class _RewardScreenState extends State<RewardScreen> {
     _fetchGiftCards();
   }
 
-  /// လက်ဆောင်ကတ်များကို database မှ ဆွဲယူခြင်း
   Future<void> _fetchGiftCards() async {
     try {
-      final data = await supabase.from('gift_cards').select().eq('is_available', true);
-
+      final data = await supabase
+          .from('gift_cards')
+          .select()
+          .eq('is_available', true);
       if (mounted) {
         setState(() {
           giftCards = data;
@@ -40,196 +40,291 @@ class _RewardScreenState extends State<RewardScreen> {
     }
   }
 
-  /// Point လဲလှယ်ခြင်း လုပ်ငန်းစဉ် (Database Function နှင့် ချိတ်ဆက်မှု)
-  Future<void> _processRedemption(dynamic item) async {
-    // လက်ရှိ Login ဝင်ထားသော User ID ကို ယူခြင်း
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) return;
-
-    // Loading ပြရန်
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Database မှာရှိတဲ့ PostgreSQL Function (RPC) ကို လှမ်းခေါ်ခြင်း
-      // Parameters များသည် Function ထဲက နာမည်များနှင့် ကိုက်ညီရပါမည်
-      await supabase.rpc(
-        'process_reward_redemption',
-        params: {
-          'target_user_id': userId,
-          'target_reward_id': item['id'],
-          'required_points': item['points_required'],
-        },
-      );
-
-      if (!mounted) return;
-      Navigator.pop(context); // Loading ပိတ်ရန်
-      Navigator.pop(context); // Dialog ပိတ်ရန်
-
-      // အောင်မြင်ကြောင်း Alert ပြရန်
-      _showMessage("အောင်မြင်ပါသည်", "လက်ဆောင်လဲလှယ်မှု ပြီးမြောက်သွားပါပြီ။", Colors.green);
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.pop(context); // Loading ပိတ်ရန်
-
-      // Point မလောက်လျှင် သို့မဟုတ် အမှားတက်လျှင် ပြရန်
-      String errorMsg = e.toString().contains('Insufficient points')
-          ? "Point မလုံလောက်ပါသဖြင့် လဲလှယ်၍ မရနိုင်ပါ။"
-          : "စနစ်ချို့ယွင်းမှု ဖြစ်ပေါ်နေပါသည်။ ခဏနေမှ ပြန်ကြိုးစားပါ။";
-
-      _showMessage("အမှားအယွင်း", errorMsg, Colors.red);
-    }
-  }
-
-  void _showMessage(String title, String message, Color color) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: TextStyle(color: color)),
-        content: Text(message),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))],
-      ),
-    );
+  List<dynamic> get _filtered {
+    if (_searchQuery.isEmpty) return giftCards;
+    return giftCards
+        .where(
+          (c) => (c['title'] as String? ?? '').toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          ),
+        )
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subColor = isDark ? Colors.white54 : Colors.black54;
+    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: Colors.black26,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: const Text("လက်ဆောင်များ လဲလှယ်ရန်"),
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        backgroundColor: Colors.black26,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
+        elevation: 0,
+        title: const Text(
+          'Rewards',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: false,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: TextField(
+              onChanged: (v) => setState(() => _searchQuery = v),
+              style: TextStyle(color: textColor),
+              decoration: InputDecoration(
+                hintText: 'Search rewards...',
+                hintStyle: TextStyle(color: subColor),
+                prefixIcon: Icon(Icons.search, color: subColor, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                filled: true,
+                fillColor: isDark
+                    ? const Color(0xFF2A2A2A)
+                    : const Color(0xFFF0F0F0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: isLoading
           ? Center(child: MoonSunLoading())
+          : _filtered.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.card_giftcard_outlined, size: 64, color: subColor),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No rewards found',
+                    style: TextStyle(color: subColor, fontSize: 16),
+                  ),
+                ],
+              ),
+            )
           : GridView.builder(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 15,
+                childAspectRatio: 0.72,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
               ),
-              itemCount: giftCards.length,
+              itemCount: _filtered.length,
               itemBuilder: (context, index) {
-                final item = giftCards[index];
-                return _buildGiftCard(item);
+                return _buildGiftCard(
+                  _filtered[index],
+                  cardBg,
+                  textColor,
+                  subColor,
+                  isDark,
+                );
               },
             ),
     );
   }
 
-  Widget _buildGiftCard(dynamic item) {
+  Widget _buildGiftCard(
+    dynamic item,
+    Color cardBg,
+    Color textColor,
+    Color subColor,
+    bool isDark,
+  ) {
+    final int pts = (item['points_required'] as num?)?.toInt() ?? 0;
+
     return GestureDetector(
-      onTap: () => Navigator.of(
+      onTap: () => Navigator.push(
         context,
-      ).push(MaterialPageRoute(builder: (context) => RewardDetailPage(rewardId: item['id']))),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.2), blurRadius: 2)],
+        MaterialPageRoute(
+          builder: (_) => RewardDetailPage(rewardId: item['id']),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                  image: item['image_url'] != null
-                      ? DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover)
-                      : null,
-                ),
-                child: item['image_url'] == null
-                    ? const Icon(Icons.card_giftcard, size: 50, color: Colors.grey)
-                    : null,
+      ),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.95, end: 1.0),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.4)
+                    : Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${item['title']}' ?? 'Gift Card',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image / Placeholder
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      const Icon(Icons.stars, color: Colors.orange, size: 16),
-                      const SizedBox(width: 5),
-                      Text(
-                        "${item['points_required']} Points",
-                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                      // Background gradient shimmer
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isDark
+                                ? [
+                                    const Color(0xFF2A3A5C),
+                                    const Color(0xFF1B2D45),
+                                  ]
+                                : [
+                                    const Color(0xFFE8F4FD),
+                                    const Color(0xFFD1E9F6),
+                                  ],
+                          ),
+                        ),
+                      ),
+                      if (item['image_url'] != null)
+                        Image.network(
+                          item['image_url'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _placeholder(isDark),
+                        )
+                      else
+                        _placeholder(isDark),
+                      // Points badge on top right
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF6B35),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFFF6B35,
+                                ).withValues(alpha: 0.4),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.stars_rounded,
+                                color: Colors.white,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '$pts',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  // SizedBox(
-                  //   width: double.infinity,
-                  //   child: ElevatedButton(
-                  //     onPressed: () => _redeemDialog(item),
-                  //     style: ElevatedButton.styleFrom(
-                  //       backgroundColor: const Color(0xFF1B4F72),
-                  //       foregroundColor: Colors.white,
-                  //       shape: RoundedRectangleBorder(
-                  //         borderRadius: BorderRadius.circular(8),
-                  //       ),
-                  //       padding: EdgeInsets.zero,
-                  //     ),
-                  //     child: const Text("လဲလှယ်မည်"),
-                  //   ),
-                  // ),
-                ],
-              ),
+                ),
+                // Info section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['title'] ?? 'Gift Card',
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.stars_rounded,
+                            color: Color(0xFFFF6B35),
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$pts pts',
+                            style: const TextStyle(
+                              color: Color(0xFFFF6B35),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF1B4F72,
+                              ).withValues(alpha: isDark ? 0.8 : 1.0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Claim',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  void _redeemDialog(dynamic item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text("အတည်ပြုရန်"),
-        content: Text(
-          "${item['title']} ကို ${item['points_required']} points ဖြင့် လဲလှယ်မှာ သေချာပါသလား?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("မလုပ်တော့ပါ", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => DynamicQRRedemption(item: item))),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B4F72)),
-            child: const Text("သေချာသည်", style: TextStyle(color: Colors.white)),
-          ),
-        ],
+  Widget _placeholder(bool isDark) {
+    return Center(
+      child: Icon(
+        Icons.card_giftcard_rounded,
+        size: 52,
+        color: isDark ? Colors.white24 : Colors.blueGrey.withValues(alpha: 0.3),
       ),
     );
   }

@@ -1,12 +1,10 @@
-import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:msloyalty/Constants/Config.dart';
-import 'package:msloyalty/Constants/constant.dart';
 import 'package:msloyalty/Helpers/showSnackBar.dart';
 import 'package:msloyalty/Screens/OtpRequestScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:msloyalty/Screens/set_password.dart';
 import 'package:msloyalty/Services/smspoh_service.dart';
 
 class SignupPage extends StatefulWidget {
@@ -17,32 +15,22 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final _formKey = GlobalKey<FormState>(); // Validation အတွက်
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _dobController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
 
-  File? _imageFile;
-  bool _isOtpSent = false;
   bool _isLoading = false;
-  bool _isActive = false;
-  int? lastRequestId;
   final supabase = Supabase.instance.client;
 
-  // ၂။ အဆင့်မြင့် OTP Request Logic
   Future<void> _checkPhoneNumber() async {
-    if (!_formKey.currentState!.validate()) return; // Form မပြည့်စုံရင် ရပ်မယ်
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _isActive = false;
-    });
+    setState(() => _isLoading = true);
     final phone = _phoneController.text.trim();
 
     try {
-      // ဖုန်းနံပါတ် ရှိပြီးသားလား အရင်စစ်
       final existingUser = await supabase
           .from('profiles')
           .select('id')
@@ -50,40 +38,74 @@ class _SignupPageState extends State<SignupPage> {
           .maybeSingle();
 
       if (existingUser != null) {
-        showSnackBar(
-          context,
-          "ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်",
-          isError: true,
-        );
-      } else {
-        // SMSPoh Service ကို အသုံးပြုခြင်း
-        final response = await SMSPohService.requestOTP(phone);
-        print(response);
-        if (response != null) {
-          setState(() {
-            _isOtpSent = true;
-            lastRequestId = response['requestId'];
-          });
-          // ignore: use_build_context_synchronously
-          showSnackBar(context, "OTP ကုဒ်ကို SMS ပို့လိုက်ပါပြီ");
-          Navigator.push(
-            // ignore: use_build_context_synchronously
+        if (mounted) {
+          showSnackBar(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  OtpScreen(phone: phone, requestId: lastRequestId),
-            ),
+            "This phone number is already registered.",
+            isError: true,
           );
+        }
+      } else {
+        final response = await SMSPohService.requestOTP(phone);
+        if (response != null) {
+          if (mounted) {
+            showSnackBar(context, "OTP sent successfully");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpScreen(
+                  phone: phone,
+                  requestId: response['requestId'],
+                  data: {
+                    'username': _nameController.text.trim(),
+                    'email': _emailController.text.trim(),
+                    'dob': _dobController.text.trim(),
+                  },
+                ),
+              ),
+            );
+          }
         } else {
-          showSnackBar(context, "SMS ပို့ဆောင်မှု မအောင်မြင်ပါ", isError: true);
+          if (mounted) {
+            showSnackBar(context, "Failed to send OTP", isError: true);
+          }
         }
       }
     } catch (e) {
-      showSnackBar(context, "Error: $e", isError: true);
+      if (mounted) showSnackBar(context, "Error: $e", isError: true);
     } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(
+        const Duration(days: 6570),
+      ), // 18 years ago
+      firstDate: DateTime(1940),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFFFFD700),
+              onPrimary: Color(0xFF0A192F),
+              surface: Color(0xFF1B4F72),
+              onSurface: Colors.white,
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: const Color(0xFF0A192F),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
       setState(() {
-        _isLoading = false;
-        _isActive = true;
+        _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
@@ -91,170 +113,330 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          "Create Account",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF1B4F72),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildHeader(),
-              Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: Column(
-                  children: [
-                    buildTextField(
-                      _nameController,
-                      "Username",
-                      Icons.person,
-                      enabled: !_isOtpSent,
-                    ),
-                    const SizedBox(height: 20),
-                    buildEmailField(_emailController),
-                    const SizedBox(height: 20),
-                    buildDateField(context, _dobController),
-                    const SizedBox(height: 20),
-                    buildTextField(
-                      _phoneController,
-                      "Phone Number",
-                      Icons.phone,
-                      isPhone: true,
-                      enabled: !_isOtpSent,
-                    ),
+      body: Stack(
+        children: [
+          // ── Deep Space Background Gradient ────────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0A192F), Color(0xFF132B4F)],
+              ),
+            ),
+          ),
 
-                    const SizedBox(height: 40),
-                    MaterialButton(
-                      color: const Color(0xFF1B4F72),
-                      disabledColor: Colors
-                          .grey[300], // Disable ဖြစ်နေချိန်မှာ ပြမယ့်အရောင်
-                      disabledTextColor: Colors.grey[600],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 30,
-                      ),
-                      onPressed: _isLoading
-                          ? null
-                          : () {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              _checkPhoneNumber();
-                            }, //_isOtpSent ? _verifyOtp : _checkPhoneNumber,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _isLoading
-                              ? Row(
-                                  children: [
-                                    CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    const Text(
-                                      "OTP ပေးပို့နေပါသည်...",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Text(
-                                  _isOtpSent
-                                      ? "OTP ပြန်ပို့မည်"
-                                      : "OTP တောင်းဆိုမည်",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.send, color: Colors.white, size: 18),
-                        ],
-                      ),
-                    ),
+          // ── Animated Orbs for Depth ──────────────────────────────────────
+          Positioned(
+            top: -50,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF1B4F72).withOpacity(0.12),
+                    Colors.transparent,
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+
+          SafeArea(
+            child: Column(
+              children: [
+                // ── Custom Glass Header ──────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Create Account",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          // ── Logo Section ────────────────────────────────────
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.03),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.08),
+                              ),
+                            ),
+                            child: Image.network(
+                              Config.logoImage,
+                              height: 50,
+                              errorBuilder: (c, e, s) => const Icon(
+                                Icons.person_add_rounded,
+                                color: Color(0xFFFFD700),
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.vpn_lock_rounded, color: Colors.amber, size: 18),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    "VPN ကို ပိတ်ပြီးမှ OTP ရယူပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။",
+                                    style: TextStyle(
+                                      color: Colors.amber.shade200,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // ── Glassmorphism Form Panel ────────────────────────
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(36),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.06),
+                                  borderRadius: BorderRadius.circular(36),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.12),
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildGlassTextField(
+                                      controller: _nameController,
+                                      label: "FULL NAME",
+                                      icon: Icons.person_outline_rounded,
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                          ? "Required"
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildGlassTextField(
+                                      controller: _phoneController,
+                                      label: "PHONE NUMBER",
+                                      icon: Icons.phone_iphone_rounded,
+                                      keyboardType: TextInputType.phone,
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                          ? "Required"
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildGlassTextField(
+                                      controller: _emailController,
+                                      label: "EMAIL ADDRESS (OPTIONAL)",
+                                      icon: Icons.alternate_email_rounded,
+                                      keyboardType: TextInputType.emailAddress,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildGlassTextField(
+                                      controller: _dobController,
+                                      label: "DATE OF BIRTH",
+                                      icon: Icons.cake_outlined,
+                                      readOnly: true,
+                                      onTap: () => _selectDate(context),
+                                      validator: (val) =>
+                                          val == null || val.isEmpty
+                                          ? "Required"
+                                          : null,
+                                    ),
+                                    const SizedBox(height: 32),
+
+                                    // ── Action Button ──────────────────────────────
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(0xFF1B4F72),
+                                              Color(0xFF0A192F),
+                                            ],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(
+                                                0xFF1B4F72,
+                                              ).withOpacity(0.4),
+                                              blurRadius: 15,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ElevatedButton(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : _checkPhoneNumber,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shadowColor: Colors.transparent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                          ),
+                                          child: _isLoading
+                                              ? const SizedBox(
+                                                  height: 24,
+                                                  width: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Text(
+                                                  "CONTINUE",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 2,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // --- UI Components ---
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1B4F72),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // ၁။ Logo ပြမည့်နေရာ (LoginScreen နှင့် ပုံစံတူ)
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Image.network(
-              Config.logoImage, // သင့် Config ထဲက Logo URL
-              height: 60,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons
-                    .person_add_alt_1_rounded, // Signup အတွက် အိုင်ကွန်ပြောင်းထားသည်
-                size: 50,
-                color: Color(0xFF1B4F72),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // ၂။ Signup အတွက် သင့်တော်သော စာသား
-          const Text(
-            "Create New Account",
+  Widget _buildGlassTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool readOnly = false,
+    VoidCallback? onTap,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(
+            label,
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            "အဖွဲ့ဝင်အသစ်အဖြစ် စာရင်းသွင်းပါ",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          readOnly: readOnly,
+          onTap: onTap,
+          validator: validator,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.white38, size: 22),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.04),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.25)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 0.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 15,
+              horizontal: 20,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

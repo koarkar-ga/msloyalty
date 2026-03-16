@@ -27,9 +27,12 @@ Future<void> checkUserSession(BuildContext context) async {
     if (userData != null) {
       final String userId = userData['id'];
       final String dbDeviceId = userData['last_device_id'] ?? "";
-      final String currentDeviceId = (await getThisDeviceId())['device_id'] ?? "";
+      final String currentDeviceId =
+          (await getThisDeviceId())['device_id'] ?? "";
 
-      print("Current Device ID: $currentDeviceId, Database Device ID: $dbDeviceId");
+      print(
+        "Current Device ID: $currentDeviceId, Database Device ID: $dbDeviceId",
+      );
       print("Current User ID: $userId, Database User ID: ${userData['id']}");
 
       // ၃။ Database က ID နဲ့ လက်ရှိစက်ရဲ့ ID တူမှ ပေးဝင်မယ်
@@ -48,7 +51,10 @@ Future<void> checkUserSession(BuildContext context) async {
 }
 
 // Security ကြောင့် Logout လုပ်ရလျှင် Local Data ပါ ဖျက်ပစ်မည်
-Future<void> handleForceLogout(BuildContext context, SharedPreferences prefs) async {
+Future<void> handleForceLogout(
+  BuildContext context,
+  SharedPreferences prefs,
+) async {
   await Supabase.instance.client.auth.signOut();
   await prefs.clear(); // Local မှာ သိမ်းထားသမျှ အကုန်ဖျက်
   navigateTo(context, '/login');

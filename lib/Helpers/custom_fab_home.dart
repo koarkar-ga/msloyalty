@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
 import 'package:msloyalty/Helpers/open_scanner.dart';
-import 'package:msloyalty/Helpers/show_my_qr_code.dart';
 
 class CustomScannerFAB extends StatelessWidget {
   const CustomScannerFAB({super.key});
@@ -39,7 +38,11 @@ class ActionMenuSheet extends StatelessWidget {
         children: [
           const Text(
             "ကျေးဇူးပြု၍ တစ်ခုခုရွေးချယ်ပါ",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1B4F72)),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1B4F72),
+            ),
           ),
           const SizedBox(height: 32),
           Row(
@@ -53,7 +56,9 @@ class ActionMenuSheet extends StatelessWidget {
                 color: const Color(0xFF1B4F72),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const DynamicQRRewardScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const DynamicQRRewardScreen(),
+                  ),
                 ),
               ),
               // Option 2: Scan QR (အခြား QR များ ဖတ်ရန်)
@@ -98,12 +103,18 @@ class ActionMenuSheet extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             label,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
           ),
         ],
       ),
     );
   }
 
-  static VoidCallback? showActionMenu(BuildContext context) {}
+  static VoidCallback? showActionMenu(BuildContext context) {
+    return null;
+  }
 }

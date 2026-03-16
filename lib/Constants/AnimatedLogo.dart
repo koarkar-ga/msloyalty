@@ -10,7 +10,8 @@ class AnimatedLogo extends StatefulWidget {
   State<AnimatedLogo> createState() => _AnimatedLogoState();
 }
 
-class _AnimatedLogoState extends State<AnimatedLogo> with SingleTickerProviderStateMixin {
+class _AnimatedLogoState extends State<AnimatedLogo>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scale;
   late Animation<double> _glow;
@@ -19,8 +20,10 @@ class _AnimatedLogoState extends State<AnimatedLogo> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-      ..repeat(reverse: true);
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
 
     _scale = Tween<double>(
       begin: 0.85,
@@ -43,7 +46,7 @@ class _AnimatedLogoState extends State<AnimatedLogo> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (_, __) {
+      builder: (_, _) {
         return Transform.scale(
           scale: _scale.value,
           child: Container(
@@ -73,8 +76,13 @@ class _AnimatedLogoState extends State<AnimatedLogo> with SingleTickerProviderSt
 
     // Fallback icon logo (fuel + loyalty vibe)
     return Container(
-      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF0A1A2F)),
-      child: const Center(child: Icon(Icons.local_gas_station, color: Colors.amber, size: 80)),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF0A1A2F),
+      ),
+      child: const Center(
+        child: Icon(Icons.local_gas_station, color: Colors.amber, size: 80),
+      ),
     );
   }
 }

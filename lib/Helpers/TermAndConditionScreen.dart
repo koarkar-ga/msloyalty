@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
+  const TermsAndConditionsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Terms & Conditions', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Terms & Conditions',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.orange[800], // MOONSUN Energy Theme Color
         iconTheme: IconThemeData(color: Colors.white),
       ),
@@ -18,7 +23,11 @@ class TermsAndConditionsScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Icon(Icons.card_giftcard, size: 60, color: Colors.orange[800]),
+                  Icon(
+                    Icons.card_giftcard,
+                    size: 60,
+                    color: Colors.orange[800],
+                  ),
                   SizedBox(height: 10),
                   Text(
                     'MOONSUN x G&G Gift Voucher',
@@ -63,7 +72,10 @@ class TermsAndConditionsScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 15),
                 ),
                 onPressed: () => Navigator.pop(context),
-                child: Text('နားလည်ပါပြီ', style: TextStyle(fontSize: 16, color: Colors.white)),
+                child: Text(
+                  'နားလည်ပါပြီ',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -81,12 +93,20 @@ class TermsAndConditionsScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange[900]),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.orange[900],
+            ),
           ),
           SizedBox(height: 8),
           Text(
             content,
-            style: TextStyle(fontSize: 14, height: 1.5, color: Colors.grey[800]),
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: Colors.grey[800],
+            ),
             textAlign: TextAlign.justify,
           ),
         ],

@@ -23,7 +23,10 @@ class _PromoBannerSliderState extends State<PromoBannerSlider> {
 
   Future<void> _fetchBanners() async {
     try {
-      final data = await supabase.from('banners').select('image_url').eq('is_active', true);
+      final data = await supabase
+          .from('banners')
+          .select('image_url')
+          .eq('is_active', true);
 
       setState(() {
         bannerImages = List<String>.from(data.map((item) => item['image_url']));
@@ -39,9 +42,12 @@ class _PromoBannerSliderState extends State<PromoBannerSlider> {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Container(
-        height: 150,
+        height: 120,
         margin: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(15)),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(15),
+        ),
         child: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -52,7 +58,7 @@ class _PromoBannerSliderState extends State<PromoBannerSlider> {
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 150.0,
+            height: 120.0,
             autoPlay: true, // အလိုအလျောက် ပတ်ပြမည်
             enlargeCenterPage: true, // အလယ်ပုံကို ပိုကြီးပြမည်
             viewportFraction: 0.9,

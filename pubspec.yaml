@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.10.8
@@ -38,26 +38,33 @@ dependencies:
   http: ^1.2.0
   image_picker: ^1.0.7
   device_info_plus: ^12.3.0 # Device Information
-  shared_preferences: ^2.0.6   # Shared Preferences
+  shared_preferences: ^2.5.4   # Shared Preferences
   flutter_launcher_icons: ^0.13.1
   carousel_slider_plus: # Slider အတွက်
   cached_network_image: ^3.3.1 # Network Image Cache
   intl: 
   crypto:
+  package_info_plus: ^8.0.0
+  flutter_map: ^6.0.0
+  latlong2: ^0.9.0
+  location: ^5.0.3
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+  flutter_timezone: ^5.0.1
+  dio: ^5.4.1
+  path_provider: ^2.1.2
+  flutter_secure_storage: ^9.0.0
+  permission_handler: ^12.0.1
+  video_player: ^2.11.1
+  screenshot: ^3.0.0
+  share_plus: ^10.1.0
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/moonsun_logo.png" # သင့်ပုံလမ်းကြောင်း
-  adaptive_icon_background: "#1B4F72" # Android အတွက် Background အရောင်
-  adaptive_icon_foreground: "assets/images/moonsun_logo.png"
-  
-  # State Management
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  image_path: "assets/images/final_launcher_icon_small.png"
+  adaptive_icon_background: "#1B4F72"
+  adaptive_icon_foreground: "assets/images/final_launcher_icon_small.png"
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -88,6 +95,7 @@ flutter:
   assets:
     - assets/images/moonsun_logo.png
     - assets/images/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

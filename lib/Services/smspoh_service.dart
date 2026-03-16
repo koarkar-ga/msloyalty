@@ -35,6 +35,35 @@ class SMSPohService {
     }
   }
 
+  /// OTP ကို Verify လုပ်ရန် Function
+  static Future<bool> verifyOTP({
+    required String phoneNumber,
+    required String otp,
+    required int? requestId,
+  }) async {
+    try {
+      final verifyUrl = "https://v3.smspoh.com/api/otp/verify";
+      final response = await http.post(
+        Uri.parse(verifyUrl),
+        body: {
+          'accessToken': _accessToken,
+          'to': phoneNumber,
+          'code': otp,
+          'requestId': requestId?.toString() ?? '',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == true || data['status'] == 'true' || data['message'] == 'OTP verified successfully';
+      }
+      return false;
+    } catch (e) {
+      debugPrint("OTP Verify Error: $e");
+      return false;
+    }
+  }
+
   // ၃။ Verify & Navigate
   static Future<void> verifyAndNext(
     BuildContext context,
@@ -61,11 +90,9 @@ class SMSPohService {
           'requestId': lastRequestId,
         },
       );
-      navigator == null
-          ? Navigator.of(context).pop()
-          : Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => navigator),
-            );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (BuildContext context) => navigator),
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (BuildContext context) => navigator),
       );

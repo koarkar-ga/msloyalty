@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 class StationDetailScreen extends StatelessWidget {
@@ -8,41 +7,56 @@ class StationDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Database မှ image_url ကို ယူခြင်း
     final String? imageUrl = station['image_url'];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subColor = Theme.of(context).textTheme.bodyMedium?.color;
+    final fgColor = Theme.of(context).appBarTheme.foregroundColor;
+    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(station['name'], style: TextStyle(fontSize: 16)),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-
+        title: Text(station['name'], style: TextStyle(fontSize: 16, color: fgColor)),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: fgColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: fgColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- ဆိုင်ပုံ ပြသသည့် အပိုင်း ---
+            // Station Image
             Hero(
-              tag: 'station-${station['id']}', // Hero Animation အတွက် tag
+              tag: 'station-${station['id']}',
               child: Container(
                 height: 250,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: isDark ? const Color(0xFF1B2D45) : const Color(0xFFE8F4FD),
                   image: imageUrl != null && imageUrl.isNotEmpty
                       ? DecorationImage(
                           image: NetworkImage(imageUrl),
-                          fit: BoxFit.cover, // ပုံကို အကွက်အပြည့်ဖြည့်ရန်
+                          fit: BoxFit.cover,
                         )
                       : null,
                 ),
                 child: (imageUrl == null || imageUrl.isEmpty)
-                    ? const Icon(Icons.local_gas_station, size: 80, color: Colors.grey)
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.local_gas_station,
+                              size: 80,
+                              color: isDark ? Colors.white24 : Colors.blueGrey.withValues(alpha: 0.3)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No Image',
+                            style: TextStyle(color: subColor, fontSize: 12),
+                          ),
+                        ],
+                      )
                     : null,
               ),
             ),
@@ -52,47 +66,84 @@ class StationDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Name + Region badge row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
                           station['name'],
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                      if (station['region'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B4F72).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFF1B4F72).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            station['region'],
+                            style: const TextStyle(
+                              color: Color(0xFF1B4F72),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          station['region'] ?? "Unknown",
-                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                        ),
-                      ),
                     ],
                   ),
-                  const Divider(height: 30),
 
-                  _infoRow(
-                    Icons.location_on_rounded,
-                    "လိပ်စာ",
-                    station['address'] ?? "လိပ်စာမရှိပါ",
-                  ),
                   const SizedBox(height: 20),
-                  _infoRow(
-                    Icons.phone_rounded,
-                    "ဖုန်းနံပါတ်",
-                    station['phone'] ?? "ဖုန်းနံပါတ်မရှိပါ",
+
+                  // Info Cards
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _infoTile(
+                          icon: Icons.location_on_rounded,
+                          label: 'လိပ်စာ',
+                          value: station['address'] ?? 'လိပ်စာမရှိပါ',
+                          textColor: textColor,
+                          subColor: subColor,
+                          isLast: false,
+                        ),
+                        Divider(height: 1, indent: 56, color: isDark ? Colors.white12 : Colors.black12),
+                        _infoTile(
+                          icon: Icons.phone_rounded,
+                          label: 'ဖုန်းနံပါတ်',
+                          value: station['phone'] ?? 'ဖုန်းနံပါတ်မရှိပါ',
+                          textColor: textColor,
+                          subColor: subColor,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   // Action Buttons
                   Row(
@@ -100,27 +151,31 @@ class StationDetailScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _makeCall(station['phone']),
-                          icon: const Icon(Icons.call),
-                          label: const Text("Call Now"),
+                          icon: const Icon(Icons.call, size: 18),
+                          label: const Text('Call Now'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green[700],
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 15),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _openMap(station['map_url']),
-                          icon: const Icon(Icons.map_outlined),
-                          label: const Text("Directions"),
+                          icon: const Icon(Icons.map_outlined, size: 18),
+                          label: const Text('Directions'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1B4F72),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
@@ -135,73 +190,62 @@ class StationDetailScreen extends StatelessWidget {
     );
   }
 
-  // Info Row Widget
-  Widget _infoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: const Color(0xFF1B4F72), size: 28),
-        const SizedBox(width: 15),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
-              const SizedBox(height: 3),
-              Text(value, style: const TextStyle(fontSize: 16, height: 1.4, color: Colors.white)),
-            ],
+  Widget _infoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? textColor,
+    Color? subColor,
+    required bool isLast,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B4F72).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: const Color(0xFF1B4F72), size: 20),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(color: subColor, fontSize: 12)),
+                const SizedBox(height: 3),
+                Text(value,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                      color: textColor,
+                      fontWeight: FontWeight.w500,
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ၁။ ဖုန်းခေါ်ဆိုရန် Function
 Future<void> _makeCall(String? phoneNumber) async {
   if (phoneNumber == null || phoneNumber.isEmpty) return;
-
   final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-
-  if (await canLaunchUrl(launchUri)) {
-    await launchUrl(launchUri);
-  } else {
-    debugPrint('ဖုန်းခေါ်ဆို၍ မရပါ');
-  }
+  if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
 }
 
-// ၂။ Google Maps ဖွင့်ရန် Function
 Future<void> _openMap(String? mapUrl) async {
   if (mapUrl == null || mapUrl.isEmpty) return;
-
   final Uri url = Uri.parse(mapUrl);
-
-  // အပြင် App (Google Maps) ဖြင့် ဖွင့်ရန်ကြိုးစားခြင်း
   if (await canLaunchUrl(url)) {
-    await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication, // Google Maps App ထဲ တိုက်ရိုက်သွားရန်
-    );
-  } else {
-    debugPrint('မြေပုံဖွင့်၍ မရပါ');
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
-}
-
-Widget _infoRow(IconData icon, String label, String value) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(icon, color: const Color(0xFF1B4F72)),
-      const SizedBox(width: 15),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            Text(value, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-    ],
-  );
 }

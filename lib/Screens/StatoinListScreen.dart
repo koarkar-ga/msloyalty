@@ -43,7 +43,9 @@ class _StationListScreenState extends State<StationListScreen> {
       filteredStations = stations.where((s) {
         final name = s['name'].toString().toLowerCase();
         final address = s['address'].toString().toLowerCase();
-        final region = (s['region'] ?? '').toString().toLowerCase(); // Region ကိုပါ စစ်မည်
+        final region = (s['region'] ?? '')
+            .toString()
+            .toLowerCase(); // Region ကိုပါ စစ်မည်
         final searchLower = query.toLowerCase();
 
         return name.contains(searchLower) ||
@@ -60,17 +62,22 @@ class _StationListScreenState extends State<StationListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subColor = Theme.of(context).textTheme.bodyMedium?.color;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final fgColor = Theme.of(context).appBarTheme.foregroundColor;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("ဆိုင်များ ရှာဖွေရန်"),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: fgColor,
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back_ios, color: fgColor, size: 20),
+        //   onPressed: () => Navigator.pop(context),
+        // ),
       ),
       body: Column(
         children: [
@@ -79,11 +86,19 @@ class _StationListScreenState extends State<StationListScreen> {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               onChanged: _filterStations,
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 hintText: "ဆိုင်အမည် သို့မဟုတ် မြို့နယ်ဖြင့်ရှာပါ",
-                hintStyle: const TextStyle(color: Colors.white, fontSize: 12),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                hintStyle: TextStyle(color: subColor, fontSize: 12),
+                prefixIcon: Icon(Icons.search, color: subColor),
+                filled: true,
+                fillColor: isDark
+                    ? const Color(0xFF2A2A2A)
+                    : const Color(0xFFF0F0F0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
@@ -105,33 +120,60 @@ class _StationListScreenState extends State<StationListScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StationDetailScreen(station: station),
+                              builder: (context) =>
+                                  StationDetailScreen(station: station),
                             ),
                           );
                         },
                         child: Card(
-                          color: Colors.grey[850],
-                          elevation: 3,
+                          color: cardColor,
+                          elevation: isDark ? 4 : 2,
                           margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(12),
-
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(
+                                0xFF1B4F72,
+                              ).withValues(alpha: 0.12),
+                              child: const Icon(
+                                Icons.local_gas_station,
+                                color: Color(0xFF1B4F72),
+                                size: 20,
+                              ),
+                            ),
                             title: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(station['name'], style: const TextStyle(color: Colors.white)),
+                                Text(
+                                  station['name'],
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 if (station['region'] != null)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black54,
+                                      color: const Color(
+                                        0xFF1B4F72,
+                                      ).withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Text(
                                       station['region'],
-                                      style: const TextStyle(fontSize: 10, color: Colors.white),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Color(0xFF1B4F72),
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -139,31 +181,39 @@ class _StationListScreenState extends State<StationListScreen> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const SizedBox(height: 4),
                                 Text(
                                   station['address'],
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(
+                                    color: subColor,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  "ဖုန်း: ${station['phone'] ?? '-'}",
-                                  style: const TextStyle(color: Colors.white),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.phone,
+                                      size: 12,
+                                      color: subColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      station['phone'] ?? '-',
+                                      style: TextStyle(
+                                        color: subColor,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            // trailing: Row(
-                            //   mainAxisSize: MainAxisSize.min,
-                            //   children: [
-                            //     IconButton(
-                            //       icon: const Icon(Icons.phone, color: Colors.green),
-                            //       onPressed: () => _launchURL("tel:${station['phone']}"),
-                            //     ),
-                            //     IconButton(
-                            //       icon: const Icon(Icons.directions, color: Colors.blue),
-                            //       onPressed: () =>
-                            //           _launchURL(station['map_url'] ?? "https://maps.google.com"),
-                            //     ),
-                            //   ],
-                            // ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: subColor,
+                            ),
                           ),
                         ),
                       );
