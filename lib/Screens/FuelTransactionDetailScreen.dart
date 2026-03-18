@@ -21,11 +21,13 @@ class _FuelTransactionDetailScreenState
   int _rating = 0;
   bool _isSubmitting = false;
   String? _stationName;
+  bool _hasFeedback = false;
 
   @override
   void initState() {
     super.initState();
     _fetchStationName();
+    _hasFeedback = widget.data['customer_rating'] != null && widget.data['customer_rating'] > 0;
   }
 
   Future<void> _fetchStationName() async {
@@ -65,6 +67,9 @@ class _FuelTransactionDetailScreenState
       if (txnId != null) {
         await provider.submitFeedback(txnId, _rating, _remarkController.text);
         if (mounted) {
+          setState(() {
+            _hasFeedback = true;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('မှတ်ချက် ပေးပို့ပြီးပါပြီ။ ကျေးဇူးတင်ပါသည်။'),
@@ -243,96 +248,94 @@ class _FuelTransactionDetailScreenState
               ),
             ),
 
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 20),
+            if (!_hasFeedback) ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 20),
 
-            // Customer Feedback Section
-            Text(
-              'ဝန်ဆောင်မှုအပေါ် သင့်အမြင်ကို ပြောပြပေးပါ',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // Rating Bar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _rating = index + 1;
-                    });
-                  },
-                  icon: Icon(
-                    index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.orange,
-                    size: 40,
-                  ),
-                );
-              }),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Remark Box
-            TextField(
-              controller: _remarkController,
-              style: theme.textTheme.bodyMedium,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'မှတ်ချက် (စိတ်ကြိုက်) ...',
-                filled: true,
-                fillColor: theme.brightness == Brightness.dark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+              // Customer Feedback Section
+              Text(
+                'ဝန်ဆောင်မှုအပေါ် သင့်အမြင်ကို ပြောပြပေးပါ',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                contentPadding: const EdgeInsets.all(16),
               ),
-            ),
+              const SizedBox(height: 8),
 
-            const SizedBox(height: 20),
+              // Rating Bar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _rating = index + 1;
+                      });
+                    },
+                    icon: Icon(
+                      index < _rating ? Icons.star : Icons.star_border,
+                      color: Colors.orange,
+                      size: 40,
+                    ),
+                  );
+                }),
+              ),
 
-            // Submit Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _rating > 0
-                      ? colorScheme.primary
-                      : Colors.grey,
-                  foregroundColor: colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+              const SizedBox(height: 12),
+
+              // Remark Box
+              TextField(
+                controller: _remarkController,
+                style: theme.textTheme.bodyMedium,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'မှတ်ချက် (စိတ်ကြိုက်) ...',
+                  filled: true,
+                  fillColor: theme.brightness == Brightness.dark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey[100],
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
+                  contentPadding: const EdgeInsets.all(16),
                 ),
-                onPressed: _rating > 0 && !_isSubmitting
-                    ? _submitFeedback
-                    : null,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'ပေးပို့မည်',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
               ),
-            ),
+
+              const SizedBox(height: 20),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _rating > 0 ? colorScheme.primary : Colors.grey,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _rating > 0 && !_isSubmitting ? _submitFeedback : null,
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'ပေးပို့မည်',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+            ],
             const SizedBox(height: 32),
           ],
         ),
