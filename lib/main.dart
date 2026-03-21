@@ -13,16 +13,13 @@ import 'package:msloyalty/Screens/login_screen.dart';
 import 'package:msloyalty/Screens/notification_screen.dart';
 import 'package:msloyalty/Screens/signup_screen.dart';
 import 'package:msloyalty/Screens/splash_screen.dart';
-import 'package:msloyalty/Services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await Supabase.initialize(url: Config.supabaseUrl, anonKey: Config.anonKey);
 

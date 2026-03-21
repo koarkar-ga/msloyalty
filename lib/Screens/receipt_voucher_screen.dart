@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -47,13 +46,10 @@ class _ReceiptVoucherScreenState extends State<ReceiptVoucherScreen> {
     }
   }
 
-
   @override
   void dispose() {
     super.dispose();
   }
-
-
 
   Future<void> _shareReceipt() async {
     try {

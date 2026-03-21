@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,7 +10,7 @@ class DownloadService {
     if (url.contains('drive.google.com')) {
       final uri = Uri.parse(url);
       String? fileId;
-      
+
       if (uri.path.contains('file/d/')) {
         final parts = uri.path.split('/');
         final index = parts.indexOf('d');
@@ -51,7 +50,8 @@ class DownloadService {
       );
 
       // 2. Handle Google Drive's "Virus Scan" confirmation page if present
-      if (response.data is String && (response.data as String).contains('confirm=')) {
+      if (response.data is String &&
+          (response.data as String).contains('confirm=')) {
         final content = response.data as String;
         final regExp = RegExp(r'href="([^"]*confirm=[^"]*)"');
         final match = regExp.firstMatch(content);

@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:msloyalty/Providers/settings_provider.dart';
-import 'package:msloyalty/Helpers/app_localizations.dart';
 
 class PinVerifyPage extends StatefulWidget {
   final bool isForUnlock;
@@ -96,11 +94,18 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                   // ── Header (only if not for mandatory unlock) ──────────────────
                   if (!widget.isForUnlock)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                             onPressed: () => Navigator.pop(context, false),
                           ),
                         ],
@@ -112,10 +117,16 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                   // ── PIN Indicators ──────────────────────────────────────────
                   Column(
                     children: [
-                      const Icon(Icons.lock_outline_rounded, color: Colors.red, size: 60),
+                      const Icon(
+                        Icons.lock_outline_rounded,
+                        color: Colors.red,
+                        size: 60,
+                      ),
                       const SizedBox(height: 24),
                       Text(
-                        locale == 'en' ? "Security Check" : "လုံခြုံရေးစစ်ဆေးခြင်း",
+                        locale == 'en'
+                            ? "Security Check"
+                            : "လုံခြုံရေးစစ်ဆေးခြင်း",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -124,7 +135,9 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        locale == 'en' ? "Enter your 4-digit PIN" : "PIN နံပါတ်ကို ရိုက်ထည့်ပါ",
+                        locale == 'en'
+                            ? "Enter your 4-digit PIN"
+                            : "PIN နံပါတ်ကို ရိုက်ထည့်ပါ",
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
                           fontSize: 16,
@@ -141,18 +154,24 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                             height: 20,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: filled ? Colors.red : Colors.white.withOpacity(0.1),
+                              color: filled
+                                  ? Colors.red
+                                  : Colors.white.withOpacity(0.1),
                               border: Border.all(
-                                color: filled ? Colors.red : Colors.white.withOpacity(0.3),
+                                color: filled
+                                    ? Colors.red
+                                    : Colors.white.withOpacity(0.3),
                                 width: 2,
                               ),
-                              boxShadow: filled ? [
-                                BoxShadow(
-                                  color: Colors.red.withOpacity(0.5),
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                )
-                              ] : [],
+                              boxShadow: filled
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.red.withOpacity(0.5),
+                                        blurRadius: 10,
+                                        spreadRadius: 2,
+                                      ),
+                                    ]
+                                  : [],
                             ),
                           );
                         }),
@@ -161,7 +180,10 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                         const SizedBox(height: 24),
                         Text(
                           _errorMessage,
-                          style: const TextStyle(color: Colors.redAccent, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ],
@@ -180,14 +202,17 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
                       crossAxisSpacing: 20,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        ...List.generate(9, (index) => _buildKey((index + 1).toString())),
+                        ...List.generate(
+                          9,
+                          (index) => _buildKey((index + 1).toString()),
+                        ),
                         const SizedBox.shrink(),
                         _buildKey("0"),
                         _buildKey("back", icon: Icons.backspace_outlined),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 40),
                 ],
               ),
@@ -204,15 +229,15 @@ class _PinVerifyPageState extends State<PinVerifyPage> {
       borderRadius: BorderRadius.circular(50),
       child: Center(
         child: icon != null
-          ? Icon(icon, color: Colors.white, size: 24)
-          : Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
+            ? Icon(icon, color: Colors.white, size: 24)
+            : Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
       ),
     );
   }

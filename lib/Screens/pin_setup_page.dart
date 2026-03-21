@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:msloyalty/Providers/settings_provider.dart';
-import 'package:msloyalty/Helpers/app_localizations.dart';
 
 class PinSetupPage extends StatefulWidget {
   const PinSetupPage({super.key});
@@ -50,7 +48,10 @@ class _PinSetupPageState extends State<PinSetupPage> {
       // Check if pins match
       if (_pin == _confirmPin) {
         try {
-          final settings = Provider.of<SettingsProvider>(context, listen: false);
+          final settings = Provider.of<SettingsProvider>(
+            context,
+            listen: false,
+          );
           await settings.setPin(_pin);
           if (mounted) {
             Navigator.pop(context, true);
@@ -113,18 +114,25 @@ class _PinSetupPageState extends State<PinSetupPage> {
               children: [
                 // ── Header ────────────────────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _isConfirming 
-                          ? (locale == 'en' ? "Confirm PIN" : "PIN အတည်ပြုပါ")
-                          : (locale == 'en' ? "Setup PIN" : "PIN အသစ်ပေးပါ"),
+                        _isConfirming
+                            ? (locale == 'en' ? "Confirm PIN" : "PIN အတည်ပြုပါ")
+                            : (locale == 'en' ? "Setup PIN" : "PIN အသစ်ပေးပါ"),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -142,8 +150,12 @@ class _PinSetupPageState extends State<PinSetupPage> {
                   children: [
                     Text(
                       _isConfirming
-                        ? (locale == 'en' ? "Re-enter your 4-digit PIN" : "PIN နံပါတ်ကို ထပ်မံရိုက်ထည့်ပါ")
-                        : (locale == 'en' ? "Create your 4-digit PIN" : "ဂဏန်း ၄ လုံးပါသော PIN နံပါတ်တစ်ခု ဖန်တီးပါ"),
+                          ? (locale == 'en'
+                                ? "Re-enter your 4-digit PIN"
+                                : "PIN နံပါတ်ကို ထပ်မံရိုက်ထည့်ပါ")
+                          : (locale == 'en'
+                                ? "Create your 4-digit PIN"
+                                : "ဂဏန်း ၄ လုံးပါသော PIN နံပါတ်တစ်ခု ဖန်တီးပါ"),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 16,
@@ -160,18 +172,24 @@ class _PinSetupPageState extends State<PinSetupPage> {
                           height: 20,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: filled ? Colors.red : Colors.white.withOpacity(0.1),
+                            color: filled
+                                ? Colors.red
+                                : Colors.white.withOpacity(0.1),
                             border: Border.all(
-                              color: filled ? Colors.red : Colors.white.withOpacity(0.3),
+                              color: filled
+                                  ? Colors.red
+                                  : Colors.white.withOpacity(0.3),
                               width: 2,
                             ),
-                            boxShadow: filled ? [
-                              BoxShadow(
-                                color: Colors.red.withOpacity(0.5),
-                                blurRadius: 10,
-                                spreadRadius: 2,
-                              )
-                            ] : [],
+                            boxShadow: filled
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.red.withOpacity(0.5),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ]
+                                : [],
                           ),
                         );
                       }),
@@ -180,7 +198,10 @@ class _PinSetupPageState extends State<PinSetupPage> {
                       const SizedBox(height: 24),
                       Text(
                         _errorMessage,
-                        style: const TextStyle(color: Colors.redAccent, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ],
@@ -199,14 +220,17 @@ class _PinSetupPageState extends State<PinSetupPage> {
                     crossAxisSpacing: 20,
                     physics: const NeverScrollableScrollPhysics(),
                     children: [
-                      ...List.generate(9, (index) => _buildKey((index + 1).toString())),
+                      ...List.generate(
+                        9,
+                        (index) => _buildKey((index + 1).toString()),
+                      ),
                       const SizedBox.shrink(),
                       _buildKey("0"),
                       _buildKey("back", icon: Icons.backspace_outlined),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 40),
               ],
             ),
@@ -222,15 +246,15 @@ class _PinSetupPageState extends State<PinSetupPage> {
       borderRadius: BorderRadius.circular(50),
       child: Center(
         child: icon != null
-          ? Icon(icon, color: Colors.white, size: 24)
-          : Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
+            ? Icon(icon, color: Colors.white, size: 24)
+            : Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
       ),
     );
   }

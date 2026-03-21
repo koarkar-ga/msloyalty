@@ -7,9 +7,7 @@ import 'package:msloyalty/Providers/notification_provider.dart';
 import 'package:msloyalty/Providers/settings_provider.dart';
 import 'package:msloyalty/Screens/notification_screen.dart';
 import 'package:msloyalty/Screens/profile_screen.dart';
-import 'package:msloyalty/Screens/settings_screen.dart';
 import 'package:msloyalty/Services/notification_service.dart';
-import 'package:msloyalty/Services/version_service.dart';
 import 'package:provider/provider.dart';
 
 // LoyaltyApp - Inner app shell (no MaterialApp - inherits theme from MSLoyaltyApp)
@@ -66,7 +64,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const RewardScreen(),
     const NotificationScreen(),
     const ProfileScreen(),
-    const SettingsScreen(),
   ];
 
   @override
@@ -80,13 +77,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           int count = notiProvider.unreadCount;
 
           return Padding(
-            padding: const EdgeInsets.only(left: 4, right: 4, bottom: 16),
+            padding: const EdgeInsets.only(left: 4, right: 4, bottom: 20),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
-                  height: 70,
+                  margin: const EdgeInsets.only(top: 10),
+                  height: 100,
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(10),
@@ -108,7 +106,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       },
                       type: BottomNavigationBarType.fixed,
                       backgroundColor: Colors.transparent,
-                      elevation: 0,
+                      elevation: 4,
                       selectedItemColor: Colors.red,
                       unselectedItemColor: Colors.white.withOpacity(0.6),
                       selectedFontSize: 11,
@@ -153,11 +151,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           icon: Icon(Icons.person_outline),
                           label: "Profile",
                           activeIcon: Icon(Icons.person, color: Colors.red),
-                        ),
-                        const BottomNavigationBarItem(
-                          icon: Icon(Icons.settings_outlined),
-                          label: "Settings",
-                          activeIcon: Icon(Icons.settings, color: Colors.red),
                         ),
                       ],
                     ),

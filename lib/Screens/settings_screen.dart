@@ -48,7 +48,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
-    final notiProvider = Provider.of<NotificationProvider>(context, listen: false);
+    final notiProvider = Provider.of<NotificationProvider>(
+      context,
+      listen: false,
+    );
     final locale = settings.locale;
     final isDark = settings.isDarkMode;
 
@@ -66,14 +69,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          _buildSectionHeader(locale == 'en' ? "PREFERENCES" : "ဦးစားပေးသတ်မှတ်ချက်များ"),
-          
+          _buildSectionHeader(
+            locale == 'en' ? "PREFERENCES" : "ဦးစားပေးသတ်မှတ်ချက်များ",
+          ),
+
           // Theme Toggle
           _buildSettingsTile(
             icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
             title: 'dark_mode'.tr(locale),
             trailing: Switch(
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               value: isDark,
               onChanged: (value) => settings.toggleTheme(value),
             ),
@@ -84,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.notifications_active_outlined,
             title: locale == 'en' ? "Notifications" : "အသိပေးချက်များ",
             trailing: Switch(
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               value: settings.notificationsEnabled,
               onChanged: (value) {
                 settings.toggleNotifications(value);
@@ -102,8 +107,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               underline: const SizedBox(),
               icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
               items: const [
-                DropdownMenuItem(value: 'en', child: Text('English', style: TextStyle(fontSize: 14))),
-                DropdownMenuItem(value: 'mm', child: Text('မြန်မာ', style: TextStyle(fontSize: 14))),
+                DropdownMenuItem(
+                  value: 'en',
+                  child: Text('English', style: TextStyle(fontSize: 14)),
+                ),
+                DropdownMenuItem(
+                  value: 'mm',
+                  child: Text('မြန်မာ', style: TextStyle(fontSize: 14)),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) settings.setLocale(value);
@@ -119,20 +130,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.lock_outline_rounded,
             title: locale == 'en' ? "PIN Lock" : "PIN ကုဒ်ဖြင့် ပိတ်ရန်",
             trailing: Switch(
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               value: settings.pinLockEnabled,
               onChanged: (value) async {
                 if (value) {
                   // Turning ON
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PinSetupPage()),
+                    MaterialPageRoute(
+                      builder: (context) => const PinSetupPage(),
+                    ),
                   );
                   if (result == true) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(locale == 'en' ? "PIN Lock Enabled" : "PIN ကုဒ် အောင်မြင်စွာ သတ်မှတ်ပြီးပါပြီ"),
+                          content: Text(
+                            locale == 'en'
+                                ? "PIN Lock Enabled"
+                                : "PIN ကုဒ် အောင်မြင်စွာ သတ်မှတ်ပြီးပါပြီ",
+                          ),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -142,14 +159,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // Turning OFF - requires verification
                   final verified = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PinVerifyPage()),
+                    MaterialPageRoute(
+                      builder: (context) => const PinVerifyPage(),
+                    ),
                   );
                   if (verified == true) {
                     await settings.togglePinLock(false);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(locale == 'en' ? "PIN Lock Disabled" : "PIN ကုဒ်အား ပိတ်လိုက်ပါပြီ"),
+                          content: Text(
+                            locale == 'en'
+                                ? "PIN Lock Disabled"
+                                : "PIN ကုဒ်အား ပိတ်လိုက်ပါပြီ",
+                          ),
                           backgroundColor: Colors.orange,
                         ),
                       );
@@ -168,18 +191,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Requires verification first
                 final verified = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PinVerifyPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const PinVerifyPage(),
+                  ),
                 );
                 if (verified == true) {
                   if (mounted) {
                     final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const PinSetupPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const PinSetupPage(),
+                      ),
                     );
                     if (result == true && mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(locale == 'en' ? "PIN Changed Successfully" : "PIN ကုဒ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ"),
+                          content: Text(
+                            locale == 'en'
+                                ? "PIN Changed Successfully"
+                                : "PIN ကုဒ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ",
+                          ),
                           backgroundColor: Colors.green,
                         ),
                       );
@@ -190,30 +221,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
           const SizedBox(height: 24),
-          _buildSectionHeader(locale == 'en' ? "INFORMATION & SUPPORT" : "သတင်းအချက်အလက်နှင့် အကူအညီ"),
+          _buildSectionHeader(
+            locale == 'en'
+                ? "INFORMATION & SUPPORT"
+                : "သတင်းအချက်အလက်နှင့် အကူအညီ",
+          ),
 
           _buildSettingsTile(
             icon: Icons.description_outlined,
-            title: locale == 'en' ? "Terms & Conditions" : "စည်းကမ်းသတ်မှတ်ချက်များ",
-            onTap: () => _showDialog(context, "Terms & Conditions", _systemSettings['terms_conditions'] ?? "Loading..."),
+            title: locale == 'en'
+                ? "Terms & Conditions"
+                : "စည်းကမ်းသတ်မှတ်ချက်များ",
+            onTap: () => _showDialog(
+              context,
+              "Terms & Conditions",
+              _systemSettings['terms_conditions'] ?? "Loading...",
+            ),
           ),
 
           _buildSettingsTile(
             icon: Icons.privacy_tip_outlined,
-            title: locale == 'en' ? "Privacy Policy" : "ကိုယ်ရေးအချက်အလက် မူဝါဒ",
-            onTap: () => _showDialog(context, "Privacy Policy", _systemSettings['privacy_policy'] ?? "Loading..."),
+            title: locale == 'en'
+                ? "Privacy Policy"
+                : "ကိုယ်ရေးအချက်အလက် မူဝါဒ",
+            onTap: () => _showDialog(
+              context,
+              "Privacy Policy",
+              _systemSettings['privacy_policy'] ?? "Loading...",
+            ),
           ),
 
           _buildSettingsTile(
             icon: Icons.help_outline_rounded,
             title: locale == 'en' ? "Help & Support" : "အကူအညီ",
-            onTap: () => _showDialog(context, "Help & Support", _systemSettings['help_content'] ?? "Loading..."),
+            onTap: () => _showDialog(
+              context,
+              "Help & Support",
+              _systemSettings['help_content'] ?? "Loading...",
+            ),
           ),
 
           const SizedBox(height: 24),
           _buildSettingsTile(
             icon: Icons.update_rounded,
-            title: locale == 'en' ? "Check for Update" : "အသစ်ထွက်ရှိမှု စစ်ဆေးရန်",
+            title: locale == 'en'
+                ? "Check for Update"
+                : "အသစ်ထွက်ရှိမှု စစ်ဆေးရန်",
             onTap: () async {
               final result = await VersionService.checkUpdate();
               if (result['available'] == true) {
@@ -222,7 +275,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(locale == 'en' ? "You are using the latest version" : "သင်သည် နောက်ဆုံးဗားရှင်းကို အသုံးပြုနေသည်"),
+                      content: Text(
+                        locale == 'en'
+                            ? "You are using the latest version"
+                            : "သင်သည် နောက်ဆုံးဗားရှင်းကို အသုံးပြုနေသည်",
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -276,7 +333,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : Colors.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
@@ -286,7 +345,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
-        trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right_rounded, color: Colors.grey) : null),
+        trailing:
+            trailing ??
+            (onTap != null
+                ? const Icon(Icons.chevron_right_rounded, color: Colors.grey)
+                : null),
       ),
     );
   }
@@ -296,22 +359,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         content: Scrollbar(
           child: SingleChildScrollView(
-            child: Text(content, style: const TextStyle(fontSize: 14, height: 1.5)),
+            child: Text(
+              content,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("CLOSE", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: const Text(
+              "CLOSE",
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
     );
   }
 }
-
-
-

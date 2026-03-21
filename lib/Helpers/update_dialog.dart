@@ -1,7 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:msloyalty/Screens/home_screen.dart';
-import 'package:msloyalty/Services/security_service.dart';
 import 'package:msloyalty/Services/version_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:msloyalty/Providers/settings_provider.dart';
@@ -276,29 +274,38 @@ class _UpdateDialogState extends State<UpdateDialog> {
                             Column(
                               children: [
                                 _progress == -1
-                                      ? const LinearProgressIndicator(
-                                          backgroundColor: Colors.white10,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                                          minHeight: 12,
-                                        )
-                                      : LinearProgressIndicator(
-                                          value: _progress,
-                                          backgroundColor: Colors.white.withOpacity(0.05),
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                                          minHeight: 12,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _progress == -1
-                                        ? (locale == 'en' ? 'Downloading...' : 'ဒေါင်းလုဒ်ဆွဲနေသည်...')
-                                        : "${(_progress * 100).toInt()}% ${locale == 'en' ? 'Downloaded' : 'ဒေါင်းလုဒ်ဆွဲပြီးပါပြီ'}",
-                                    style: const TextStyle(
-                                      color: Colors.white60,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    ? const LinearProgressIndicator(
+                                        backgroundColor: Colors.white10,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.redAccent,
+                                            ),
+                                        minHeight: 12,
+                                      )
+                                    : LinearProgressIndicator(
+                                        value: _progress,
+                                        backgroundColor: Colors.white
+                                            .withOpacity(0.05),
+                                        valueColor:
+                                            const AlwaysStoppedAnimation<Color>(
+                                              Colors.redAccent,
+                                            ),
+                                        minHeight: 12,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _progress == -1
+                                      ? (locale == 'en'
+                                            ? 'Downloading...'
+                                            : 'ဒေါင်းလုဒ်ဆွဲနေသည်...')
+                                      : "${(_progress * 100).toInt()}% ${locale == 'en' ? 'Downloaded' : 'ဒေါင်းလုဒ်ဆွဲပြီးပါပြီ'}",
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                ),
                                 if (_error != null) ...[
                                   const SizedBox(height: 12),
                                   Text(
@@ -315,16 +322,24 @@ class _UpdateDialogState extends State<UpdateDialog> {
                                       TextButton(
                                         onPressed: _startDownload,
                                         child: Text(
-                                          locale == 'en' ? "RETRY" : "ပြန်ကြိုးစားမည်",
-                                          style: const TextStyle(color: Colors.white),
+                                          locale == 'en'
+                                              ? "RETRY"
+                                              : "ပြန်ကြိုးစားမည်",
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       TextButton(
                                         onPressed: _launchLegacyURL,
                                         child: Text(
-                                          locale == 'en' ? "BROWSER" : "ဘရောက်ဇာမှဖွင့်ရန်",
-                                          style: const TextStyle(color: Colors.redAccent),
+                                          locale == 'en'
+                                              ? "BROWSER"
+                                              : "ဘရောက်ဇာမှဖွင့်ရန်",
+                                          style: const TextStyle(
+                                            color: Colors.redAccent,
+                                          ),
                                         ),
                                       ),
                                     ],

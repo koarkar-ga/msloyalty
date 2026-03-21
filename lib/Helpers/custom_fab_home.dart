@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:msloyalty/Helpers/dynamic_qr_reward_screen.dart';
-import 'package:msloyalty/Helpers/open_scanner.dart';
 
 class CustomScannerFAB extends StatelessWidget {
   const CustomScannerFAB({super.key});
@@ -46,7 +45,7 @@ class ActionMenuSheet extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Option 1: Scan Me (ကိုယ့် QR ကို ဝန်ထမ်းအားပြရန်)
               _buildMenuOption(
@@ -60,14 +59,6 @@ class ActionMenuSheet extends StatelessWidget {
                     builder: (context) => const DynamicQRRewardScreen(),
                   ),
                 ),
-              ),
-              // Option 2: Scan QR (အခြား QR များ ဖတ်ရန်)
-              _buildMenuOption(
-                context,
-                icon: Icons.center_focus_weak_rounded,
-                label: "Scan QR",
-                color: const Color(0xFFC62828),
-                onTap: () => OpenScanner().scanner(context),
               ),
             ],
           ),

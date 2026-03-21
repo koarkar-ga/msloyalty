@@ -570,7 +570,7 @@ class _NearMeScreenState extends State<NearMeScreen> {
                           )
                         : const LatLng(16.8409, 96.1735),
                     initialZoom: 13,
-                    onTap: (_, __) {
+                    onTap: (_, _) {
                       setState(() {
                         _selectedStationId = null;
                         _polylines = [];

@@ -9,6 +9,7 @@ import 'package:msloyalty/Screens/OtpRequestScreen.dart';
 import 'package:msloyalty/Services/security_service.dart';
 import 'package:msloyalty/Services/smspoh_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:msloyalty/Screens/settings_screen.dart';
 import 'package:msloyalty/Services/activity_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:msloyalty/Providers/settings_provider.dart';
@@ -426,7 +427,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             await ns.showTestNotification();
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Test notification sent!')),
+                                const SnackBar(
+                                  content: Text('Test notification sent!'),
+                                ),
                               );
                             }
                           },
@@ -434,13 +437,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _divider(isDark),
                         _buildProfileTile(
                           icon: Icons.directions_car_outlined,
-                          title: locale == 'en' ? 'My Vehicles' : 'ကျွန်ုပ်၏ယာဉ်များ',
+                          title: locale == 'en'
+                              ? 'My Vehicles'
+                              : 'ကျွန်ုပ်၏ယာဉ်များ',
                           subtitle: 'Manage and set reminders',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const MyVehiclesScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _divider(isDark),
+                        _buildProfileTile(
+                          icon: Icons.settings_outlined,
+                          title: locale == 'en' ? 'Settings' : 'ဆက်တင်များ',
+                          subtitle: 'App preferences and security',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
                               ),
                             );
                           },
@@ -539,7 +558,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
       ),
       subtitle: subtitle != null
-          ? Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey))
+          ? Text(
+              subtitle,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            )
           : null,
       trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
     );
